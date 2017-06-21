@@ -46,9 +46,6 @@ class SFTPClient(paramiko.SFTPClient):
 
 class FSEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        if os.path.basename(event.src_path).startswith('.'):
-            return
-
         # if this file was modified
         if os.path.basename(event.src_path) == os.path.basename(__file__):
             logger.info("restarting sync daemon")
@@ -62,11 +59,12 @@ class FSEventHandler(FileSystemEventHandler):
             os.execl(sys.executable, sys.executable, *sys.argv)
             return
 
-        try:
-            sftp.put_dir('./code', '/root/flightcontroller')
-            logger.info('syncing')
-        except Exception as e:
-            logger.error(e)
+        if event.src_path.startswith('./code'):
+            try:
+                sftp.put_dir('./code', '/root/flightcontroller')
+                logger.info('syncing')
+            except Exception as e:
+                logger.error(e)
 
 hostname = os.environ.get('HOSTNAME')
 username = os.environ.get('USERNAME')
