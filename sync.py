@@ -30,7 +30,6 @@ class SFTPClient(paramiko.SFTPClient):
         for item in os.listdir(source):
             source_path = os.path.join(source, item)
             target_path = '%s/%s' % (target, item)
-
             if os.path.isfile(source_path):
                 self.put(source_path, target_path)
             else:
@@ -46,8 +45,6 @@ class SFTPClient(paramiko.SFTPClient):
 
 
 class FSEventHandler(FileSystemEventHandler):
-    target = os.environ.get('TARGET_FOLDER')
-
     def on_modified(self, event):
         # if this file was modified
         if os.path.basename(event.src_path) == os.path.basename(__file__):
@@ -62,9 +59,9 @@ class FSEventHandler(FileSystemEventHandler):
             os.execl(sys.executable, sys.executable, *sys.argv)
             return
 
-        logger.info('syncing...')
         try:
-            sftp.put_dir('.', self.target)
+            sftp.put_dir('./code', '/root/flightcontroller')
+            logger.info('synced')
         except Exception as e:
             logger.error(e)
 
