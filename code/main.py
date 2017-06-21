@@ -27,7 +27,7 @@ class Motor():
     def __init__(self, pin=None):
         # values below 20 produce what appears to be an alarming beep
         # and values above like 90 dont produce much of a change
-        # so keep an range and adjust the throttle within it
+        # so keep a range and adjust the throttle within it
         self.duty_cycle_range = self.max_duty_cycle - self.min_duty_cycle
 
         GPIO.setup(pin, GPIO.OUT)
@@ -46,7 +46,7 @@ class Motor():
             # fail shut
             percentage = 0
 
-        duty_cycle = self.min_duty_cycle + ((percentage * self.duty_cycle_range) / 100)
+        duty_cycle = self.min_duty_cycle + (percentage * self.duty_cycle_range / 100)
         self.pin.ChangeDutyCycle(duty_cycle)
 
 
