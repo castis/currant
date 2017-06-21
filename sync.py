@@ -11,6 +11,9 @@ import psutil
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,8 +46,7 @@ class SFTPClient(paramiko.SFTPClient):
 
 
 class FSEventHandler(FileSystemEventHandler):
-    source = '.'
-    target = '/root/flightcontroller'
+    target = os.environ.get('TARGET_FOLDER')
 
     def on_modified(self, event):
         # if this file was modified
@@ -62,17 +64,17 @@ class FSEventHandler(FileSystemEventHandler):
 
         logger.info('syncing...')
         try:
-            sftp.put_dir(self.source, self.target)
+            sftp.put_dir('.', self.target)
         except Exception as e:
             logger.error(e)
 
-
-hostname = '192.168.1.37'
-username = 'root'
-key_file = '/Users/dsibitzky/.ssh/id_rsa'
+hostname = os.environ.get('HOSTNAME')
+username = os.environ.get('USERNAME')
+key_file = os.environ.get('KEY_FILE')
 
 try:
     transport = paramiko.Transport((hostname, 22))
+    open(key_file)
     pkey = paramiko.RSAKey.from_private_key_file(key_file)
     transport.connect(username=username, pkey=pkey)
     sftp = SFTPClient.from_transport(transport)
