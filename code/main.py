@@ -2,7 +2,11 @@ from time import sleep
 from pprint import pprint
 
 import logging
-import RPi.GPIO as GPIO
+
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    from MockRPi import GPIO
 
 
 logging.basicConfig(
@@ -85,12 +89,14 @@ vehicle = Vehicle([
     # Motor(pin=20),
 ])
 
-motor = Motor(pin=17)
+motor1 = Motor(pin=17)
+motor2 = Motor(pin=23)
 
 try:
     while True:
-        throttle = raw_input("set throttle: ")
-        motor.set_throttle(throttle)
+        throttle = input("set throttle: ")
+        motor1.set_throttle(throttle)
+        motor2.set_throttle(throttle)
 
 except KeyboardInterrupt:
     vehicle.shutdown()

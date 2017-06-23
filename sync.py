@@ -24,9 +24,9 @@ logger = logging.getLogger()
 
 
 class SFTPClient(paramiko.SFTPClient):
-    """ subclass that recursively sync a directory tree """
+    # subclass that recursively sync a directory tree
     def put_dir(self, source, target):
-        """ target folder needs to preexist """
+        # target folder needs to already exist
         for item in os.listdir(source):
             source_path = os.path.join(source, item)
             target_path = '%s/%s' % (target, item)
