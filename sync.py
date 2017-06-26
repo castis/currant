@@ -72,7 +72,6 @@ key_file = os.environ.get('KEY_FILE')
 
 try:
     transport = paramiko.Transport((hostname, 22))
-    open(key_file)
     pkey = paramiko.RSAKey.from_private_key_file(key_file)
     transport.connect(username=username, pkey=pkey)
     sftp = SFTPClient.from_transport(transport)

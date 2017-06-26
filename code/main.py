@@ -22,8 +22,8 @@ GPIO.setwarnings(False)
 
 
 class Motor():
-    max_duty_cycle = 80
-    min_duty_cycle = 30
+    max_duty_cycle = 90
+    min_duty_cycle = 10
     duty_cycle_range = None
 
     pin = None
@@ -55,48 +55,39 @@ class Motor():
 
 
 class Vehicle():
+    # front
     #cw ccw
     # 0  2
     #  \/
     #  /\
     # 3  1
     #ccw cw
-    motors = []
-
+    # rear
     def __init__(self, motors):
         self.motors = motors
 
-    # def balance(self):
-    #     pass
-
-    # def set_throttle(self, throttle, motor=None):
-    #     if motor:
-    #         self.motors[motor].set_throttle(threottle)
-    #     else:
-    #         for motor in motors:
-    #             motor.set_throttle(throttle)
+    def set_throttle(self, throttle):
+        for motor in self.motors:
+            motor.set_throttle(throttle)
 
     def shutdown(self):
-        # self.set_throttle(0)
+        self.set_throttle(0)
+        time.sleep(1)
         GPIO.cleanup()
         print(" shutdown")
 
 
-vehicle = Vehicle([
-    # Motor(pin=17),
-    # Motor(pin=18),
-    # Motor(pin=19),
-    # Motor(pin=20),
-])
-
-motor1 = Motor(pin=17)
-motor2 = Motor(pin=23)
-
 try:
+    vehicle = Vehicle([
+        Motor(pin=21),
+        Motor(pin=19),
+        Motor(pin=26),
+        Motor(pin=20),
+    ])
+
     while True:
         throttle = input("set throttle: ")
-        motor1.set_throttle(throttle)
-        motor2.set_throttle(throttle)
+        vehicle.set_throttle(throttle)
 
 except KeyboardInterrupt:
     vehicle.shutdown()
