@@ -11,9 +11,6 @@ import psutil
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv())
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,6 +18,11 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger()
+
+
+hostname = 'havok'
+username = 'root'
+key_file = '~/.ssh/id_rsa'
 
 
 class SFTPClient(paramiko.SFTPClient):
@@ -44,11 +46,18 @@ class SFTPClient(paramiko.SFTPClient):
                 raise
 
 
+transport = paramiko.Transport((hostname, 22))
+key_file = os.path.expanduser(key_file)
+pkey = paramiko.RSAKey.from_private_key_file(key_file)
+transport.connect(username=username, pkey=pkey)
+sftp = SFTPClient.from_transport(transport)
+
+
 class FSEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         # if this file was modified
         if os.path.basename(event.src_path) == os.path.basename(__file__):
-            logger.info("restarting sync daemon")
+            logger.info("restarting self")
             try:
                 p = psutil.Process(os.getpid())
                 for handler in p.open_files() + p.connections():
@@ -61,22 +70,10 @@ class FSEventHandler(FileSystemEventHandler):
 
         if event.src_path.startswith('./code'):
             try:
+                logger.info("syncing")
                 sftp.put_dir('./code', '/root/flightcontroller')
-                logger.info('syncing')
             except Exception as e:
                 logger.error(e)
-
-hostname = os.environ.get('HOSTNAME')
-username = os.environ.get('USERNAME')
-key_file = os.environ.get('KEY_FILE')
-
-try:
-    transport = paramiko.Transport((hostname, 22))
-    pkey = paramiko.RSAKey.from_private_key_file(key_file)
-    transport.connect(username=username, pkey=pkey)
-    sftp = SFTPClient.from_transport(transport)
-except Exception as e:
-    logger.error(e)
 
 observer = Observer()
 observer.schedule(FSEventHandler(), '.', recursive=True)
@@ -85,10 +82,9 @@ observer.start()
 try:
     while True:
         time.sleep(1)
-except KeyboardInterrupt:
+except:
     observer.stop()
-    sftp.close()
+    if sftp:
+        sftp.close()
     transport.close()
-    sys.exit(0)
-
-observer.join()
+    exit(0)

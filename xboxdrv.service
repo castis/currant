@@ -1,0 +1,12 @@
+[Unit]
+Description=Xbox Controller Userland Driver
+After=xboxdrv.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/xboxdrv --wid 0 -l 2 --dpad-as-button --deadzone 12000 -D --dbus disabled
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

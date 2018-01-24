@@ -10,7 +10,7 @@
 #
 #  FaBo <info@fabo.io>
 
-import smbus
+import smbus2 as smbus
 import time
 
 ## MPU9250 Default I2C slave address
@@ -206,15 +206,11 @@ class MPU9250:
     #  @retval z : z-axis data
     def readAccel(self):
         data = bus.read_i2c_block_data(self.address, ACCEL_OUT, 6)
-        x = self.dataConv(data[1], data[0])
-        y = self.dataConv(data[3], data[2])
-        z = self.dataConv(data[5], data[4])
-
-        x = round(x*self.ares, 3)
-        y = round(y*self.ares, 3)
-        z = round(z*self.ares, 3)
-
-        return {"x":x, "y":y, "z":z}
+        return {
+            "x": round(self.dataConv(data[1], data[0]) * self.ares, 3),
+            "y": round(self.dataConv(data[3], data[2]) * self.ares, 3),
+            "z": round(self.dataConv(data[5], data[4]) * self.ares, 3),
+        }
 
     ## Read gyro
     #  @param [in] self The object pointer.
@@ -223,16 +219,11 @@ class MPU9250:
     #  @retval z : z-gyro data
     def readGyro(self):
         data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
-
-        x = self.dataConv(data[1], data[0])
-        y = self.dataConv(data[3], data[2])
-        z = self.dataConv(data[5], data[4])
-
-        x = round(x*self.gres, 3)
-        y = round(y*self.gres, 3)
-        z = round(z*self.gres, 3)
-
-        return {"x":x, "y":y, "z":z}
+        return {
+            "x": round(self.dataConv(data[1], data[0]) * self.gres, 3),
+            "y": round(self.dataConv(data[3], data[2]) * self.gres, 3),
+            "z": round(self.dataConv(data[5], data[4]) * self.gres, 3),
+        }
 
     ## Read magneto
     #  @param [in] self The object pointer.
