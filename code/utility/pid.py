@@ -62,24 +62,6 @@ class PID(object):
             alpha -= self.Kd * ((feedback - self._prev_feedback) / float(dt))
 
         # Maintain memory for next loop.
-        # self._prev_tm = curr_tm
         self._prev_feedback = feedback
 
         return alpha
-
-
-# pid = PID(p=1000.0, i=10000.0, d=1000.1)
-# pid.target = 0
-
-# try:
-#     # while True:
-#     for n in range(100):
-#     # in_data = raw_input("#")
-#         # in_data = n
-#         pid(feedback=n)
-
-#         print(pid.error)
-
-#         time.sleep(1)
-# except KeyboardInterrupt:
-#     GPIO.cleanup()
