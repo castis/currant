@@ -1,32 +1,17 @@
 import time
 
+
 class PID(object):
-    """
-    Simple PID control.
-    """
 
-    def __init__(self, p=0, i=0, d=0, **kwargs):
-
-        self._get_time = kwargs.pop('get_time', None) or time.time
-
-        # initialize gains
+    def __init__(self, p=0, i=0, d=0):
         self.Kp = p
         self.Ki = i
         self.Kd = d
 
-        # The value the controller is trying to get the system to achieve.
         self._target = 0
 
-        # initialize delta t variables
-        self._prev_tm = self._get_time()
-
-        self._prev_feedback = 0
-
-        self._error = None
-
-    @property
-    def error(self):
-        return self._error
+        self.previous_feedback = 0
+        self.error = None
 
     @property
     def target(self):
@@ -36,32 +21,23 @@ class PID(object):
     def target(self, v):
         self._target = float(v)
 
-    def __call__(self, feedback, dt):
-        """ Performs a PID computation and returns a control value.
-
-            This is based on the elapsed time (dt) and the current value of the process variable
-            (i.e. the thing we're measuring and trying to change).
-
-        """
+    def __call__(self, feedback, time_delta):
         feedback = float(feedback)
 
-        # Calculate error.
-        error = self._error = self._target - feedback
+        self.error = self._target - feedback
 
-        # Initialize output variable.
         alpha = 0
 
-        # Add proportional component.
-        alpha -= self.Kp * error
+        # proportional
+        alpha -= self.Kp * self.error
 
-        # Add integral component.
-        alpha -= self.Ki * (error * dt)
+        # integral
+        alpha -= self.Ki * (self.error * time_delta)
 
-        # Add differential component (avoiding divide-by-zero).
-        if dt > 0:
-            alpha -= self.Kd * ((feedback - self._prev_feedback) / float(dt))
+        # derivative
+        if time_delta > 0:
+            alpha -= self.Kd * ((feedback - self.previous_feedback) / float(time_delta))
 
-        # Maintain memory for next loop.
-        self._prev_feedback = feedback
+        self.previous_feedback = feedback
 
         return alpha

@@ -10,18 +10,18 @@
 #
 #  FaBo <info@fabo.io>
 
-import smbus2 as smbus
+import smbus2
 import time
 
-## MPU9250 Default I2C slave address
-SLAVE_ADDRESS        = 0x68
-## AK8963 I2C slave address
+# MPU9250 Default I2C slave address
+SLAVE_ADDRESS = 0x68
+
+# AK8963 I2C slave address
 AK8963_SLAVE_ADDRESS = 0x0C
-## Device id
 DEVICE_ID            = 0x71
 
-''' MPU-9250 Register Addresses '''
-## sample rate driver
+# MPU-9250 Register Addresses
+# sample rate driver
 SMPLRT_DIV     = 0x19
 CONFIG         = 0x1A
 GYRO_CONFIG    = 0x1B
@@ -48,21 +48,16 @@ PWR_MGMT_2         = 0x6C
 FIFO_R_W           = 0x74
 WHO_AM_I           = 0x75
 
-## Gyro Full Scale Select 250dps
+# Gyro Full Scale Select
 GFS_250  = 0x00
-## Gyro Full Scale Select 500dps
 GFS_500  = 0x01
-## Gyro Full Scale Select 1000dps
 GFS_1000 = 0x02
-## Gyro Full Scale Select 2000dps
 GFS_2000 = 0x03
-## Accel Full Scale Select 2G
+
+# Accel Full Scale Select
 AFS_2G   = 0x00
-## Accel Full Scale Select 4G
 AFS_4G   = 0x01
-## Accel Full Scale Select 8G
 AFS_8G   = 0x02
-## Accel Full Scale Select 16G
 AFS_16G  = 0x03
 
 # AK8963 Register Addresses
@@ -73,26 +68,22 @@ AK8963_CNTL2      = 0x0B
 AK8963_ASAX       = 0x10
 
 # CNTL1 Mode select
-## Power down mode
-AK8963_MODE_DOWN   = 0x00
-## One shot data output
-AK8963_MODE_ONE    = 0x01
+AK8963_MODE_DOWN   = 0x00 # power down mode
+AK8963_MODE_ONE    = 0x01 # one shot data output
 
-## Continous data output 8Hz
+# Continous data output 8Hz
 AK8963_MODE_C8HZ   = 0x02
-## Continous data output 100Hz
+
+# Continous data output 100Hz
 AK8963_MODE_C100HZ = 0x06
 
 # Magneto Scale Select
-## 14bit output
-AK8963_BIT_14 = 0x00
-## 16bit output
-AK8963_BIT_16 = 0x01
+AK8963_BIT_14 = 0x00 # 14bit
+AK8963_BIT_16 = 0x01 # 16bit
 
-## smbus
-bus = smbus.SMBus(1)
+bus = smbus2.SMBus(1)
 
-## MPU9250 I2C Controll class
+## MPU9250 I2C Control class
 class MPU9250:
 
     ## Constructor
@@ -107,11 +98,7 @@ class MPU9250:
     #  @retval true device connected
     #  @retval false device error
     def searchDevice(self):
-        who_am_i = bus.read_byte_data(self.address, WHO_AM_I)
-        if(who_am_i == DEVICE_ID):
-            return true
-        else:
-            return false
+        return bus.read_byte_data(self.address, WHO_AM_I) == DEVICE_ID
 
     ## Configure MPU-9250
     #  @param [in] self The object pointer.
@@ -119,39 +106,46 @@ class MPU9250:
     #  @param [in] afs Accel Full Scale Select(default:AFS_2G[2g])
     def configMPU9250(self, gfs, afs):
         if gfs == GFS_250:
-            self.gres = 250.0/32768.0
+            self.gres = 250.0 / 32768.0
         elif gfs == GFS_500:
-            self.gres = 500.0/32768.0
+            self.gres = 500.0 / 32768.0
         elif gfs == GFS_1000:
-            self.gres = 1000.0/32768.0
+            self.gres = 1000.0 / 32768.0
         else:  # gfs == GFS_2000
-            self.gres = 2000.0/32768.0
+            self.gres = 2000.0 / 32768.0
 
         if afs == AFS_2G:
-            self.ares = 2.0/32768.0
+            self.ares = 2.0 / 32768.0
         elif afs == AFS_4G:
-            self.ares = 4.0/32768.0
+            self.ares = 4.0 / 32768.0
         elif afs == AFS_8G:
-            self.ares = 8.0/32768.0
+            self.ares = 8.0 / 32768.0
         else: # afs == AFS_16G:
-            self.ares = 16.0/32768.0
+            self.ares = 16.0 / 32768.0
 
         # sleep off
         bus.write_byte_data(self.address, PWR_MGMT_1, 0x00)
         time.sleep(0.1)
+
         # auto select clock source
         bus.write_byte_data(self.address, PWR_MGMT_1, 0x01)
         time.sleep(0.1)
+
         # DLPF_CFG
         bus.write_byte_data(self.address, CONFIG, 0x03)
+
         # sample rate divider
         bus.write_byte_data(self.address, SMPLRT_DIV, 0x04)
+
         # gyro full scale select
         bus.write_byte_data(self.address, GYRO_CONFIG, gfs << 3)
+
         # accel full scale select
         bus.write_byte_data(self.address, ACCEL_CONFIG, afs << 3)
+
         # A_DLPFCFG
         bus.write_byte_data(self.address, ACCEL_CONFIG_2, 0x03)
+
         # BYPASS_EN
         bus.write_byte_data(self.address, INT_PIN_CFG, 0x02)
         time.sleep(0.1)
@@ -162,9 +156,9 @@ class MPU9250:
     #  @param [in] mfs Magneto Scale Select(default:AK8963_BIT_16[16bit])
     def configAK8963(self, mode, mfs):
         if mfs == AK8963_BIT_14:
-            self.mres = 4912.0/8190.0
+            self.mres = 4912.0 / 8190.0
         else: #  mfs == AK8963_BIT_16:
-            self.mres = 4912.0/32760.0
+            self.mres = 4912.0 / 32760.0
 
         bus.write_byte_data(AK8963_SLAVE_ADDRESS, AK8963_CNTL1, 0x00)
         time.sleep(0.01)
@@ -190,14 +184,10 @@ class MPU9250:
 
     ## brief Check data ready
     #  @param [in] self The object pointer.
-    #  @retval true data is ready
-    #  @retval false data is not ready
+    #  @retval True data is ready
+    #  @retval False data is not ready
     def checkDataReady(self):
-        drdy = bus.read_byte_data(self.address, INT_STATUS)
-        if drdy & 0x01:
-            return True
-        else:
-            return False
+        return bus.read_byte_data(self.address, INT_STATUS) & 0x01
 
     ## Read accelerometer
     #  @param [in] self The object pointer.
@@ -231,9 +221,9 @@ class MPU9250:
     #  @retval y : y-magneto data
     #  @retval z : Z-magneto data
     def readMagnet(self):
-        x=0
-        y=0
-        z=0
+        x = 0
+        y = 0
+        z = 0
 
         # check data ready
         drdy = bus.read_byte_data(AK8963_SLAVE_ADDRESS, AK8963_ST1)
@@ -250,7 +240,11 @@ class MPU9250:
                 y = round(y * self.mres * self.magYcoef, 3)
                 z = round(z * self.mres * self.magZcoef, 3)
 
-        return {"x":x, "y":y, "z":z}
+        return {
+            "x": x,
+            "y": y,
+            "z": z
+        }
 
     ## Read temperature
     #  @param [out] temperature temperature(degrees C)
@@ -258,8 +252,7 @@ class MPU9250:
         data = bus.read_i2c_block_data(self.address, TEMP_OUT, 2)
         temp = self.dataConv(data[1], data[0])
 
-        temp = round((temp / 333.87 + 21.0), 3)
-        return temp
+        return round((temp / 333.87 + 21.0), 3)
 
     ## Data Convert
     # @param [in] self The object pointer.

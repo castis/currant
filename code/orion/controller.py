@@ -3,10 +3,11 @@ import time
 from utility import StoppableThread
 from evdev import categorize, ecodes, InputDevice
 
+
 logger = logging.getLogger('controller')
 
+class Controller(object):
 
-class Controller:
     def __init__(self):
         self.map = {
             'A': False,
@@ -31,7 +32,7 @@ class Controller:
                     for event in device.read():
                         self.receive_event(event)
                 except BlockingIOError:
-                    time.sleep(0.1)
+                    time.sleep(0.05)
             return
 
         self.thread = StoppableThread(
@@ -40,7 +41,8 @@ class Controller:
             name="Controller"
         )
         self.thread.start()
-        logger.info('listening')
+
+        logger.info('up')
 
     def receive_event(self, event):
         self.raw[event.code] = event.value
@@ -59,13 +61,11 @@ class Controller:
         if event.code == ecodes.BTN_THUMBR:
             self.map['RS'] = event.value == 1
 
-    def shutdown(self):
-        logger.info('shutdown')
-
+    def down(self):
         self.thread.stop()
         self.thread.join()
 
-        logger.info('halted')
+        logger.info('down')
 
 # {
 #     ('EV_KEY', 1L): [

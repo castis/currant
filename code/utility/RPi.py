@@ -3,12 +3,10 @@ import logging
 
 logger = logging.getLogger('GPIO')
 
-
 class Board:
     mode = None
     warnings = True
     channels = {}
-
 
 class GPIO():
     # left to implement
@@ -84,7 +82,6 @@ class GPIO():
     def add_event_callback(channel, callback):
         pass
 
-
 class Channel():
     def __init__(self, pin=None, signal=None, mode=None, output=None, callback=None):
         self.mode = mode
@@ -95,7 +92,6 @@ class Channel():
             pin,
             "high" if mode else "low"
         ))
-
 
 class PWM():
     def __init__(self, channel, frequency):

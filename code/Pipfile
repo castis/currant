@@ -11,6 +11,7 @@ url = "https://pypi.python.org/simple"
 numpy = "*"
 "rpi.gpio" = "*"
 evdev = "*"
+psutil = "*"
 
 
 [dev-packages]

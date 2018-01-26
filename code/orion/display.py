@@ -1,16 +1,18 @@
 import curses
-import logging
 import io
+import logging
+import os
+import psutil
 
 
+process = psutil.Process(os.getpid())
 logger = logging.getLogger('display')
 
-
-class Display():
+class Display(object):
     screen = None
 
-    def on(self):
-        logger.info('on')
+    def up(self):
+        logger.info('up')
         self.screen = curses.initscr()
 
         # no cursor
@@ -35,21 +37,52 @@ class Display():
         except:
              pass
 
-        self.engine_display = curses.newwin(3, 40, 0, 0)
 
-    def update(self, engine):
+        self.engine_display = "engine:\n" \
+            + " time: {time:.2f}\n" \
+            + " fps: {fps:.2f}\n" \
+            + " memory used: {mem:.6f} MiB"
+
+        # self.test = curses.newwin(5, 20, 20, 0)
+        self.accelerometer_display = "accelerometer:\n" \
+            + " x: {x:.3f}\n" \
+            + " y: {y:.3f}\n" \
+            + " z: {z:.3f}"
+
+        self.gyroscope_display = "gyroscope:\n" \
+            + " x: {x:.3f}\n" \
+            + " y: {y:.3f}\n" \
+            + " z: {z:.3f}"
+
+        self.motor_display = "motors:\n" \
+            + " {0: 3d} {1: 3d}\n" \
+            + " {2: 3d} {3: 3d}"
+
+        self.controller_display = "controller:\n" \
+            + " map: {map}\n" \
+            + " raw: {raw}"
+
+    def tick(self, engine):
         if not self.screen:
             return
 
         self.screen.erase()
 
-        self.screen.addstr(0, 0, "engine:")
-        self.screen.addstr(1, 1, "time: %s" % engine.time_current)
-        self.screen.addstr(2, 1, "fps: %s" % engine.fps)
+        self.screen.addstr(0, 0, self.engine_display.format(**{
+            'time': engine.chronograph.current,
+            'fps': engine.chronograph.fps,
+            'mem': process.memory_info().rss / float(2 ** 20),
+        }))
 
-        self.screen.addstr(3, 1, "throttle: %s" % (engine.vehicle.outbound_throttle,))
-        self.screen.addstr(4, 1, "pitch: %s" % (engine.vehicle.outbound_pitch,))
-        self.screen.addstr(5, 1, "roll: %s" % (engine.vehicle.outbound_roll,))
+        # test2 = self.accelerometer_display.format(**engine.vehicle.accel)
+        # self.down()
+        # print(test2)
+        # self.test.addstr(0, 10, test2)
+        # self.test.refresh()
+
+        # self.screen.addstr(3, 1, "throttle: %s" % (engine.vehicle.outbound_throttle,))
+        # self.screen.addstr(4, 1, "pitch: %s" % (engine.vehicle.outbound_pitch,))
+        # self.screen.addstr(5, 1, "roll: %s" % (engine.vehicle.outbound_roll,))
 
         # accel_display = 10
         # self.screen.addstr(accel_display, 0, "accelerometer:")
@@ -63,12 +96,10 @@ class Display():
         # screen.addstr(accel_display+2, 1, "y: %s" % (accel['y'],))
         # screen.addstr(accel_display+3, 1, "z: %s" % (accel['z'],))
 
-        motor_display = 7
-        self.screen.addstr(motor_display, 0, "motors:")
-        self.screen.addstr(motor_display+1, 1, "%s" % engine.vehicle.motors[0].dc)
-        self.screen.addstr(motor_display+1, 7, "%s" % engine.vehicle.motors[1].dc)
-        self.screen.addstr(motor_display+2, 1, "%s" % engine.vehicle.motors[2].dc)
-        self.screen.addstr(motor_display+2, 7, "%s" % engine.vehicle.motors[3].dc)
+        self.screen.addstr(5, 0, self.motor_display.format(*[
+            engine.vehicle.motors[0].dc, engine.vehicle.motors[1].dc,
+            engine.vehicle.motors[2].dc, engine.vehicle.motors[3].dc
+        ]))
 
         # print_these = self.stream.getvalue().split("\n")
         # print_these.reverse()
@@ -77,20 +108,20 @@ class Display():
         #     self.screen.addstr(i, 40, line)
         #     i -= 1
 
-        self.screen.addstr(curses.LINES - 5, 0, "controller: %s" % (engine.controller,))
-        self.screen.addstr(curses.LINES - 4, 0, " map: %s" % (engine.controller.map,))
-        self.screen.addstr(curses.LINES - 3, 0, " raw: %s" % (engine.controller.raw,))
+        self.screen.addstr(9, 0, self.controller_display.format(**{
+            'map': engine.controller.map,
+            'raw': engine.controller.raw,
+        }))
 
-        self.screen.addstr(curses.LINES-1, 0, "") # keep the cursor at the bottom
+        # keep the cursor at the bottom
+        self.screen.addstr(curses.LINES-1, 0, "")
 
         self.screen.refresh()
 
-
-    def off(self):
+    def down(self):
         if self.screen:
-            del self.screen
+            curses.echo()
+            curses.endwin()
+        self.screen = None
 
-        curses.echo()
-        curses.endwin()
-
-        logger.info('off')
+        logger.info('down')

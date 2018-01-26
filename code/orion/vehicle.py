@@ -1,95 +1,82 @@
 import time
 import logging
 
-from utility import PID
-from sensors import MPU9250
+import sensors
+from utility import PID, GPIO
 
-mpu9250 = MPU9250()
 
 logger = logging.getLogger('vehicle')
 
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
-    logger.error("loading stub GPIO library")
-    from utility import GPIO
-
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+mpu9250 = sensors.MPU9250()
 
+class Vehicle(object):
+    # if i were to implement state management, it would be for this thing
+    accel = None
+    gyro = None
 
-class Vehicle():
-    outbound_throttle = 0
-    outbound_pitch = 0
-    outbound_roll = 0
-
-    def __init__(self, motor_pins):
-        logger.info('hi')
-
-        if len(motor_pins) != 4:
+    def __init__(self, pins):
+        if len(pins) != 4:
             raise Exception('incorrect number of motor pins given')
 
-        self.motors = [Motor(pin=pin) for pin in motor_pins]
+        self.motors = [Motor(pin=pin) for pin in pins]
 
         # one for each measurement we control
-        self.throttle = PID(p=1, i=0.1, d=0)
         # self.altitude = PID(p=1, i=0.1, d=0)
         self.pitch = PID(p=1, i=0.1, d=0)
         self.roll = PID(p=1, i=0.1, d=0)
         # self.yaw = PID(p=1, i=0.1, d=0)
 
-        logger.info('ready')
+        self.accel = mpu9250.readAccel()
+        self.gyro = mpu9250.readGyro()
 
-    def tick(self, dt, controller_map):
-        accel = mpu9250.readAccel()
-        # gyro = mpu9250.readGyro()
+        logger.info('up')
 
-        self.outbound_throttle = (controller_map['RT'] / 255) * 100
-        self.outbound_throttle = self.throttle(feedback=self.outbound_throttle, dt=dt)
-        self.apply_throttle(self.outbound_throttle)
+    def tick(self, delta, controller_map):
+        self.accel = mpu9250.readAccel()
+        self.gyro = mpu9250.readGyro()
 
-        self.outbound_pitch = self.pitch(feedback=accel['x'], dt=dt)
-        self.apply_pitch(self.outbound_pitch)
+        self.apply_throttle((controller_map['RT'] / 255) * 100)
 
-        self.outbound_roll = self.roll(feedback=accel['y'], dt=dt)
-        self.apply_roll(self.outbound_roll)
+        pitch_delta = self.pitch(self.accel['x'], delta)
+        self.apply_pitch(pitch_delta)
 
-        self.render()
+        roll_delta = self.roll(self.accel['y'], delta)
+        self.apply_roll(roll_delta)
 
-    def apply_throttle(self, throttle_response):
-        self.motors[0].throttle = throttle_response
-        self.motors[1].throttle = throttle_response
-        self.motors[2].throttle = throttle_response
-        self.motors[3].throttle = throttle_response
-
-    def apply_pitch(self, pitch_adjustment):
-        self.motors[0].throttle -= (pitch_adjustment * 100)
-        self.motors[1].throttle -= (pitch_adjustment * 100)
-        self.motors[2].throttle += (pitch_adjustment * 100)
-        self.motors[3].throttle += (pitch_adjustment * 100)
-
-    def apply_roll(self, roll_adjustment):
-        self.motors[0].throttle -= (roll_adjustment * 100)
-        self.motors[2].throttle -= (roll_adjustment * 100)
-        self.motors[1].throttle += (roll_adjustment * 100)
-        self.motors[3].throttle += (roll_adjustment * 100)
-
-    def render(self):
         for motor in self.motors:
-            motor.render()
+            motor.tick()
 
-    def shutdown(self, signum=None, frame=None):
-        logger.info("shutdown")
+    def apply_throttle(self, throttle):
+        self.motors[0].throttle = throttle
+        self.motors[1].throttle = throttle
+        self.motors[2].throttle = throttle
+        self.motors[3].throttle = throttle
 
+    def apply_pitch(self, delta):
+        self.motors[0].throttle -= (delta * 100)
+        self.motors[1].throttle -= (delta * 100)
+        self.motors[2].throttle += (delta * 100)
+        self.motors[3].throttle += (delta * 100)
+
+    def apply_roll(self, delta):
+        self.motors[0].throttle -= (delta * 100)
+        self.motors[2].throttle -= (delta * 100)
+        self.motors[1].throttle += (delta * 100)
+        self.motors[3].throttle += (delta * 100)
+
+    def down(self):
         self.apply_throttle(0)
-        self.render()
+        for motor in self.motors:
+            motor.tick()
 
         GPIO.cleanup()
 
-        logger.info("halted")
+        logger.info("down")
 
 
-class Motor():
+class Motor(object):
     min_duty_cycle = 30
     max_duty_cycle = 90
     duty_cycle_range = None
@@ -112,7 +99,7 @@ class Motor():
         self.pin = GPIO.PWM(pin, 500)
         self.pin.start(self.min_duty_cycle) # duty cycle
 
-    def render(self):
+    def tick(self):
         duty_cycle = int(self.min_duty_cycle + (self.throttle * self.duty_cycle_range / 100))
         duty_cycle = max(min(self.max_duty_cycle, duty_cycle), self.min_duty_cycle)
 

@@ -1,9 +1,10 @@
-from threading import Thread, Event
+import threading
 
-class StoppableThread(Thread):
+
+class StoppableThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         super(StoppableThread, self).__init__(*args, **kwargs)
-        self._stop_event = Event()
+        self._stop_event = threading.Event()
 
     def stop(self):
         self._stop_event.set()
