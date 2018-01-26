@@ -41,65 +41,60 @@ class Display(object):
         self.engine_display = "engine:\n" \
             + " time: {time:.2f}\n" \
             + " fps: {fps:.2f}\n" \
-            + " memory used: {mem:.6f} MiB"
+            + " memory used: {mem:.6f} MiB\n" \
+            + " throttle: {throttle:.2f}"
 
-        # self.test = curses.newwin(5, 20, 20, 0)
-        self.accelerometer_display = "accelerometer:\n" \
-            + " x: {x:.3f}\n" \
-            + " y: {y:.3f}\n" \
-            + " z: {z:.3f}"
-
-        self.gyroscope_display = "gyroscope:\n" \
-            + " x: {x:.3f}\n" \
-            + " y: {y:.3f}\n" \
-            + " z: {z:.3f}"
-
+        self.motor_screen = curses.newwin(5, 20, 0, 30)
         self.motor_display = "motors:\n" \
-            + " {0: 3d} {1: 3d}\n" \
-            + " {2: 3d} {3: 3d}"
+            + "{0: 2d}  {1: 2d}\n" \
+            + "{2: 2d}  {3: 2d}"
+
+        self.accelerometer_screen = curses.newwin(5, 20, 6, 0)
+        self.accelerometer_display = "accelerometer:\n" \
+            + " x: {x:>7.3f}\n" \
+            + " y: {y:>7.3f}\n" \
+            + " z: {z:>7.3f}"
+
+        self.gyroscope_screen = curses.newwin(5, 20, 6, 17)
+        self.gyroscope_display = "gyroscope:\n" \
+            + " x: {x:>7.3f}\n" \
+            + " y: {y:>7.3f}\n" \
+            + " z: {z:>7.3f}"
+
+        self.magnet_screen = curses.newwin(5, 20, 6, 32)
+        self.magnet_display = "magnet:\n" \
+            + " x: {x:>7.3f}\n" \
+            + " y: {y:>7.3f}\n" \
+            + " z: {z:>7.3f}"
 
         self.controller_display = "controller:\n" \
             + " map: {map}\n" \
             + " raw: {raw}"
 
     def tick(self, engine):
-        if not self.screen:
-            return
-
         self.screen.erase()
 
         self.screen.addstr(0, 0, self.engine_display.format(**{
             'time': engine.chronograph.current,
             'fps': engine.chronograph.fps,
             'mem': process.memory_info().rss / float(2 ** 20),
+            'throttle': engine.vehicle.throttle,
         }))
 
-        # test2 = self.accelerometer_display.format(**engine.vehicle.accel)
-        # self.down()
-        # print(test2)
-        # self.test.addstr(0, 10, test2)
-        # self.test.refresh()
-
-        # self.screen.addstr(3, 1, "throttle: %s" % (engine.vehicle.outbound_throttle,))
-        # self.screen.addstr(4, 1, "pitch: %s" % (engine.vehicle.outbound_pitch,))
-        # self.screen.addstr(5, 1, "roll: %s" % (engine.vehicle.outbound_roll,))
-
-        # accel_display = 10
-        # self.screen.addstr(accel_display, 0, "accelerometer:")
-        # self.screen.addstr(accel_display+1, 1, "x: %s" % (engine.vehicle.state['accel']['x'],))
-        # self.screen.addstr(accel_display+2, 1, "y: %s" % (engine.vehicle.state['accel']['y'],))
-        # self.screen.addstr(accel_display+3, 1, "z: %s" % (engine.vehicle.state['accel']['z'],))
-
-        # accel_display = 10
-        # screen.addstr(accel_display, 0, "accelerometer:")
-        # screen.addstr(accel_display+1, 1, "x: %s" % (accel['x'],))
-        # screen.addstr(accel_display+2, 1, "y: %s" % (accel['y'],))
-        # screen.addstr(accel_display+3, 1, "z: %s" % (accel['z'],))
-
-        self.screen.addstr(5, 0, self.motor_display.format(*[
+        formatted = self.motor_display.format(*[
             engine.vehicle.motors[0].dc, engine.vehicle.motors[1].dc,
             engine.vehicle.motors[2].dc, engine.vehicle.motors[3].dc
-        ]))
+        ])
+        self.motor_screen.addstr(0, 0, formatted)
+
+        formatted = self.accelerometer_display.format(**engine.vehicle.accel)
+        self.accelerometer_screen.addstr(0, 0, formatted)
+
+        formatted = self.gyroscope_display.format(**engine.vehicle.gyro)
+        self.gyroscope_screen.addstr(0, 0, formatted)
+
+        formatted = self.magnet_display.format(**engine.vehicle.magnet)
+        self.magnet_screen.addstr(0, 0, formatted)
 
         # print_these = self.stream.getvalue().split("\n")
         # print_these.reverse()
@@ -108,20 +103,25 @@ class Display(object):
         #     self.screen.addstr(i, 40, line)
         #     i -= 1
 
-        self.screen.addstr(9, 0, self.controller_display.format(**{
+        self.screen.addstr(11, 0, self.controller_display.format(**{
             'map': engine.controller.map,
             'raw': engine.controller.raw,
         }))
 
-        # keep the cursor at the bottom
-        self.screen.addstr(curses.LINES-1, 0, "")
 
-        self.screen.refresh()
+        self.screen.noutrefresh()
+        self.motor_screen.noutrefresh()
+        self.accelerometer_screen.noutrefresh()
+        self.gyroscope_screen.noutrefresh()
+        self.magnet_screen.noutrefresh()
+
+        curses.doupdate()
 
     def down(self):
         if self.screen:
             curses.echo()
             curses.endwin()
-        self.screen = None
-
-        logger.info('down')
+            self.screen = None
+            logger.info('down')
+        else:
+            logger.info('already down')

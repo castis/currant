@@ -16,6 +16,7 @@ class Chronograph(object):
         self.delta = 0
         self.fps = 0
         self.cap = 60
+        # self.cap = 0
 
         logger.info('up')
 

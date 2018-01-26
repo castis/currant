@@ -16,11 +16,13 @@ class Vehicle(object):
     accel = None
     gyro = None
 
-    def __init__(self, pins):
-        if len(pins) != 4:
+    throttle = 0
+
+    def __init__(self, motor_pins=[], nav_pins=[]):
+        if len(motor_pins) != 4:
             raise Exception('incorrect number of motor pins given')
 
-        self.motors = [Motor(pin=pin) for pin in pins]
+        self.motors = [Motor(pin=pin) for pin in motor_pins]
 
         # one for each measurement we control
         # self.altitude = PID(p=1, i=0.1, d=0)
@@ -30,14 +32,17 @@ class Vehicle(object):
 
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
+        self.magnet = mpu9250.readMagnet()
 
         logger.info('up')
 
     def tick(self, delta, controller_map):
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
+        self.magnet = mpu9250.readMagnet()
 
-        self.apply_throttle((controller_map['RT'] / 255) * 100)
+        self.throttle = (controller_map['RT'] / 255) * 100
+        self.apply_throttle(self.throttle)
 
         pitch_delta = self.pitch(self.accel['x'], delta)
         self.apply_pitch(pitch_delta)
