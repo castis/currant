@@ -54,7 +54,8 @@ class Controller(object):
             self.map['X'] = event.value == 1
         if event.code == ecodes.BTN_Y:
             self.map['Y'] = event.value == 1
-        if event.code == ecodes.ABS_RZ:
+        # if event.code == ecodes.ABS_RZ:
+        if event.code == ecodes.ABS_GAS:
             self.map['RT'] = event.value
         # if event.code == ecodes.ABS_RZ:
         #     self.map['LT'] = event.value

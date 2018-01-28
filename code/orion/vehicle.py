@@ -9,7 +9,9 @@ logger = logging.getLogger('vehicle')
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+
 mpu9250 = sensors.MPU9250()
+hcsr04 = sensors.HCSR04()
 
 class Vehicle(object):
     # if i were to implement state management, it would be for this thing
@@ -33,6 +35,7 @@ class Vehicle(object):
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
         self.magnet = mpu9250.readMagnet()
+        self.altitude = hcsr04.altitude()
 
         logger.info('up')
 
@@ -40,6 +43,7 @@ class Vehicle(object):
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
         self.magnet = mpu9250.readMagnet()
+        self.altitude = hcsr04.altitude()
 
         self.throttle = (controller_map['RT'] / 255) * 100
         self.apply_throttle(self.throttle)

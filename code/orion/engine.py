@@ -21,7 +21,7 @@ class Engine(object):
         logger.info('start')
 
         try:
-            self.vehicle = Vehicle(motor_pins=[27, 7, 21, 13], nav_pins=[])
+            self.vehicle = Vehicle(motor_pins=[19, 16, 26, 20], nav_pins=[])
             self.controller = Controller()
             self.chronograph = Chronograph()
             self.display = Display()
@@ -45,7 +45,7 @@ class Engine(object):
 
                 self.vehicle.tick(self.chronograph.delta, self.controller.map)
 
-                if self.display:
+                if self.display.screen:
                     self.display.tick(self)
 
                 self.chronograph.post_loop()

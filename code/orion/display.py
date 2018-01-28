@@ -42,26 +42,27 @@ class Display(object):
             + " time: {time:.2f}\n" \
             + " fps: {fps:.2f}\n" \
             + " memory used: {mem:.6f} MiB\n" \
-            + " throttle: {throttle:.2f}"
+            + " throttle: {throttle:.2f}\n" \
+            + " altitude: {altitude:.2f} cm"
 
         self.motor_screen = curses.newwin(5, 20, 0, 30)
         self.motor_display = "motors:\n" \
             + "{0: 2d}  {1: 2d}\n" \
             + "{2: 2d}  {3: 2d}"
 
-        self.accelerometer_screen = curses.newwin(5, 20, 6, 0)
+        self.accelerometer_screen = curses.newwin(5, 20, 7, 0)
         self.accelerometer_display = "accelerometer:\n" \
             + " x: {x:>7.3f}\n" \
             + " y: {y:>7.3f}\n" \
             + " z: {z:>7.3f}"
 
-        self.gyroscope_screen = curses.newwin(5, 20, 6, 17)
+        self.gyroscope_screen = curses.newwin(5, 20, 7, 17)
         self.gyroscope_display = "gyroscope:\n" \
             + " x: {x:>7.3f}\n" \
             + " y: {y:>7.3f}\n" \
             + " z: {z:>7.3f}"
 
-        self.magnet_screen = curses.newwin(5, 20, 6, 32)
+        self.magnet_screen = curses.newwin(5, 20, 7, 32)
         self.magnet_display = "magnet:\n" \
             + " x: {x:>7.3f}\n" \
             + " y: {y:>7.3f}\n" \
@@ -79,6 +80,7 @@ class Display(object):
             'fps': engine.chronograph.fps,
             'mem': process.memory_info().rss / float(2 ** 20),
             'throttle': engine.vehicle.throttle,
+            'altitude': engine.vehicle.altitude,
         }))
 
         formatted = self.motor_display.format(*[
@@ -103,7 +105,7 @@ class Display(object):
         #     self.screen.addstr(i, 40, line)
         #     i -= 1
 
-        self.screen.addstr(11, 0, self.controller_display.format(**{
+        self.screen.addstr(12, 0, self.controller_display.format(**{
             'map': engine.controller.map,
             'raw': engine.controller.raw,
         }))
