@@ -6,12 +6,7 @@ from utility import PID, GPIO
 
 
 logger = logging.getLogger('vehicle')
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-
 mpu9250 = sensors.MPU9250()
-hcsr04 = sensors.HCSR04()
 
 class Vehicle(object):
     # if i were to implement state management, it would be for this thing
@@ -30,12 +25,14 @@ class Vehicle(object):
         # self.altitude = PID(p=1, i=0.1, d=0)
         self.pitch = PID(p=1, i=0.1, d=0)
         self.roll = PID(p=1, i=0.1, d=0)
-        # self.yaw = PID(p=1, i=0.1, d=0)
+        self.yaw = PID(p=1, i=0.1, d=0)
+
+        self.hcsr04 = sensors.HCSR04()
 
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
         self.magnet = mpu9250.readMagnet()
-        self.altitude = hcsr04.altitude()
+        self.altitude = self.hcsr04.altitude
 
         logger.info('up')
 
@@ -43,7 +40,7 @@ class Vehicle(object):
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
         self.magnet = mpu9250.readMagnet()
-        self.altitude = hcsr04.altitude()
+        self.altitude = self.hcsr04.altitude
 
         self.throttle = (controller_map['RT'] / 255) * 100
         self.apply_throttle(self.throttle)
@@ -53,6 +50,9 @@ class Vehicle(object):
 
         roll_delta = self.roll(self.accel['y'], delta)
         self.apply_roll(roll_delta)
+
+        # yaw_delta = self.yaw(self.accel['y'], delta)
+        # self.apply_roll(yaw_delta)
 
         for motor in self.motors:
             motor.tick()
@@ -75,10 +75,18 @@ class Vehicle(object):
         self.motors[1].throttle += (delta * 100)
         self.motors[3].throttle += (delta * 100)
 
+    def apply_yaw(self, delta):
+        self.motors[0].throttle -= (delta * 100)
+        self.motors[3].throttle -= (delta * 100)
+        self.motors[1].throttle += (delta * 100)
+        self.motors[2].throttle += (delta * 100)
+
     def down(self):
         self.apply_throttle(0)
         for motor in self.motors:
             motor.tick()
+
+        self.hcsr04.down()
 
         GPIO.cleanup()
 

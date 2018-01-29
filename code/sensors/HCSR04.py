@@ -1,22 +1,39 @@
 # ultrasonic sensor
 import time
 import numpy
+import logging
 
+from utility import StoppableThread
 from utility import GPIO
 
+
+logger = logging.getLogger('HCSR04')
 
 class HCSR04():
     trigger = 22
     echo = 23
+    altitude = 0
+
+    thread = None
 
     def __init__(self):
         GPIO.setup(self.trigger, GPIO.OUT)
         GPIO.setup(self.echo, GPIO.IN)
         GPIO.output(self.trigger, 0)
-        # self.history = list(range(100))
-        # self.history = deque(maxlen=150)
 
-    def altitude(self):
+        def poll_events():
+            while not self.thread.stopped():
+                self.altitude = self.distance()
+                time.sleep(0.2)
+
+        self.thread = StoppableThread(
+            target=poll_events,
+            name="HCSR04"
+        )
+        self.thread.start()
+        logger.info('up')
+
+    def distance(self):
         start = 0
         end = 0
 
@@ -50,3 +67,9 @@ class HCSR04():
 
         # return round(out)
         return out
+
+    def down(self):
+        self.thread.stop()
+        self.thread.join()
+
+        logger.info('down')
