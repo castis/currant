@@ -1,0 +1,132 @@
+---
+- hosts: flightcontrollers
+  remote_user: root
+  tasks:
+  - hostname:
+      name: "{{ inventory_hostname }}"
+
+  - authorized_key:
+      state: present
+      user: root
+      key: "{{ lookup('file', lookup('env','HOME')+'/.ssh/id_rsa.pub') }}"
+
+  - user:
+      name: pi
+      state: absent
+      remove: yes
+
+  - name: clear motd
+    copy:
+      content: ""
+      dest: /etc/motd
+      force: yes
+      group: root
+      owner: root
+      mode: 0644
+
+  - apt:
+      name: "{{ item }}"
+      state: installed
+      # update_cache: yes
+    with_items:
+      - vim
+      - python3-smbus
+      - python3-dev
+      - xboxdrv
+      - dnsmasq
+      - hostapd
+    tags: [packages]
+
+  - pip:
+      name: "{{ item }}"
+    with_items:
+      - pipenv
+    tags: [packages,pip]
+
+  - file:
+      path: /opt/flightcontroller
+      state: directory
+      mode: 0755
+
+  - name: configure xboxdrv
+    copy:
+      src: xboxdrv.service
+      dest: /etc/systemd/system/xboxdrv.service
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+    - restart xboxdrv
+    tags: [xboxdrv]
+
+  - systemd:
+      name: xboxdrv
+      daemon_reload: yes
+      enabled: yes
+    tags: [xboxdrv]
+
+  - modprobe:
+      name: xpad
+      state: absent
+    tags: [xboxdrv]
+
+  - name: configure dhcp
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: root
+      group: root
+      mode: 0644
+    with_items:
+      - { src: "dnsmasq.conf", dest: "/etc/dnsmasq.conf" }
+      - { src: "dhcpcd.conf", dest: "/etc/dhcpcd.conf" }
+    notify:
+    - restart dnsmasq
+    tags: [dhcp]
+
+  - name: configure hostapd
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: root
+      group: root
+      mode: 0644
+    with_items:
+      - { src: "hostapd.conf", dest: "/etc/hostapd/hostapd.conf" }
+      - { src: "hostapd", dest: "/etc/default/hostapd" }
+    notify:
+    - restart hostapd
+    tags: [hostapd]
+
+  - name: configure interfaces
+    copy:
+      src: interfaces
+      dest: /etc/network/interfaces
+      owner: root
+      group: root
+      mode: 0644
+    notify:
+    - restart networking
+    tags: [interfaces]
+
+  handlers:
+    - name: restart xboxdrv
+      systemd:
+        name: xboxdrv
+        daemon_reload: yes
+        state: restarted
+
+    - name: restart dnsmasq
+      systemd:
+        name: dnsmasq
+        state: restarted
+
+    - name: restart networking
+      systemd:
+        name: networking
+        state: restarted
+
+    - name: restart hostapd
+      systemd:
+        name: hostapd
+        state: restarted

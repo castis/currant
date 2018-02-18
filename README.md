@@ -1,20 +1,26 @@
-# flightcontroller
+# Flight Controller
 
-`./sync.py` is a local watch script to send `/code` to the RPi.
+## Development
 
-### Xbox Controller Support
+    pipenv run python sync.py
 
-#### Install I2C communications libraries
-    sudo apt-get install python-smbus
-    sudo apt-get install i2c-tools
-    sudo modprobe i2c-bcm2708
-    sudo modprobe i2c-dev
+to send `./code` to `rpi:/home/flightcontroller`.
 
-#### Install the XBox controller driver
-    sudo apt-get install xboxdrv
+log in to the machine and run the controlling program
 
-#### Prove that it works... (wiggle the controller sticks)
-    sudo xboxdrv --wid 0 -l 2 --dpad-as-button --deadzone 12000
+    ssh rpi -t "cd ~/flightcontroller; bash --login"
+    pipenv run python main.py
 
+## RPi setup
 
-https://www.devdungeon.com/content/creating-systemd-service-files
+Machine configuration in `ansible/`
+
+`cd ansible && ansible-playbook setup.yml`
+
+### install python 3.6.4
+
+`cd ansible && ansible-playbook python3.6.yml`
+
+### xboxdrv debugging
+
+`xboxdrv --wid 0 -l 2 --dpad-as-button --deadzone 12000`

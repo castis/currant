@@ -20,9 +20,9 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 
-hostname = 'havok'
+hostname = 'havok' # /etc/hosts points this to the RPi IP address
 username = 'root'
-key_file = '~/.ssh/id_rsa'
+key_file = os.path.expanduser('~/.ssh/id_rsa')
 
 
 class SFTPClient(paramiko.SFTPClient):
@@ -46,8 +46,11 @@ class SFTPClient(paramiko.SFTPClient):
                 raise
 
 
-transport = paramiko.Transport((hostname, 22))
-key_file = os.path.expanduser(key_file)
+try:
+    transport = paramiko.Transport((hostname, 22))
+except paramiko.ssh_exception.SSHException:
+    exit(1)
+
 pkey = paramiko.RSAKey.from_private_key_file(key_file)
 transport.connect(username=username, pkey=pkey)
 sftp = SFTPClient.from_transport(transport)
@@ -87,4 +90,4 @@ except:
     if sftp:
         sftp.close()
     transport.close()
-    exit(0)
+    raise

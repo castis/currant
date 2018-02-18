@@ -10,7 +10,7 @@
 #
 #  FaBo <info@fabo.io>
 
-import smbus2
+from smbus2 import SMBus
 import time
 
 # MPU9250 Default I2C slave address
@@ -81,7 +81,7 @@ AK8963_MODE_C100HZ = 0x06
 AK8963_BIT_14 = 0x00 # 14bit
 AK8963_BIT_16 = 0x01 # 16bit
 
-bus = smbus2.SMBus(1)
+bus = SMBus(1)
 
 ## MPU9250 I2C Control class
 class MPU9250:

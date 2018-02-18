@@ -16,7 +16,6 @@ class Chronograph(object):
         self.delta = 0
         self.fps = 0
         self.cap = 60
-        # self.cap = 0
 
         logger.info('up')
 
@@ -29,7 +28,7 @@ class Chronograph(object):
             sleep_for = 1.0 / self.cap - (time() - self.current)
             if sleep_for > 0.0:
                 sleep(sleep_for)
-        self.fps = 1 / (time() - self.current)
+        self.fps = 1.0 / (time() - self.current)
         self.previous = self.current
 
     def down(self):

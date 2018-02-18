@@ -55,9 +55,9 @@ class Controller(object):
         if event.code == ecodes.BTN_Y:
             self.map['Y'] = event.value == 1
         # if event.code == ecodes.ABS_RZ:
-        if event.code == ecodes.ABS_GAS:
+        if event.code == ecodes.ABS_GAS or event.code == ecodes.ABS_RZ:
             self.map['RT'] = event.value
-        # if event.code == ecodes.ABS_RZ:
+        # if event.code == ecodes.ABS_BRAKE or event.code == ecodes.ABS_LZ:
         #     self.map['LT'] = event.value
         if event.code == ecodes.BTN_THUMBR:
             self.map['RS'] = event.value == 1
