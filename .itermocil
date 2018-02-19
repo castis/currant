@@ -1,0 +1,15 @@
+windows:
+  - name: flightcontroller
+    root: ~/Code/flightcontroller
+    layout: main-vertical
+    panes:
+      - name: 'workspace'
+        focus: true
+        commands:
+        - git status
+      - name: 'inside'
+        commands:
+        - ssh havok -t "cd /opt/flightcontroller; pipenv shell; bash --login"
+      - name: 'sync'
+        commands:
+        - pipenv run python sync.py

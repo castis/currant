@@ -1,6 +1,7 @@
 ---
 - hosts: flightcontrollers
   remote_user: root
+    network_name: havok
   tasks:
   - hostname:
       name: "{{ inventory_hostname }}"
