@@ -4,38 +4,38 @@
     src_dir: "Python-3.6.4"
   remote_user: root
   tasks:
-    # - name: install build environment
-    #   apt:
-    #     name: "{{ item }}"
-    #     state: installed
-    #     update_cache: yes
-    #   with_items:
-    #     - build-essential
-    #     - checkinstall
-    #     - libreadline-gplv2-dev
-    #     - libncursesw5-dev
-    #     - libssl-dev
-    #     - libsqlite3-dev
-    #     - tk-dev
-    #     - libgdbm-dev
-    #     - libc6-dev
-    #     - libbz2-dev
+    - name: install build environment
+      apt:
+        name: "{{ item }}"
+        state: installed
+        update_cache: yes
+      with_items:
+        - build-essential
+        - checkinstall
+        - libreadline-gplv2-dev
+        - libncursesw5-dev
+        - libssl-dev
+        - libsqlite3-dev
+        - tk-dev
+        - libgdbm-dev
+        - libc6-dev
+        - libbz2-dev
 
-    # - unarchive:
-    #     src: "https://www.python.org/ftp/python/3.6.4/{{ src_dir }}.tgz"
-    #     dest: "/tmp"
-    #     remote_src: yes
+    - unarchive:
+        src: "https://www.python.org/ftp/python/3.6.4/{{ src_dir }}.tgz"
+        dest: "/tmp"
+        remote_src: yes
 
-    # - command: "./configure"
-    #   args:
-    #     chdir: "/tmp/{{ src_dir }}"
+    - command: "./configure"
+      args:
+        chdir: "/tmp/{{ src_dir }}"
 
-    # - command: "{{ item }}"
-    #   args:
-    #     chdir: "/tmp/{{ src_dir }}"
-    #   with_items:
-    #     - make
-    #     - make install
+    - command: "{{ item }}"
+      args:
+        chdir: "/tmp/{{ src_dir }}"
+      with_items:
+        - make
+        - make install
 
     - name: throw away build environment
       apt:

@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 
-hostname = 'havok' # /etc/hosts points this to the RPi IP address
+hostname = 'havok'
 username = 'root'
 key_file = os.path.expanduser('~/.ssh/id_rsa')
 
@@ -74,7 +74,7 @@ class FSEventHandler(FileSystemEventHandler):
         if event.src_path.startswith('./code'):
             try:
                 logger.info("syncing")
-                sftp.put_dir('./code', '/root/flightcontroller')
+                sftp.put_dir('./code', '/opt/flightcontroller')
             except Exception as e:
                 logger.error(e)
 

@@ -26,6 +26,7 @@ psutil = "*"
 "pyasn1" = "==0.2.3"
 pycparser = "==2.17"
 pynacl = "==1.1.2"
-python-dotenv = "==0.6.4"
+
 pyyaml = "==3.12"
 watchdog = "*"
+ansible = "*"

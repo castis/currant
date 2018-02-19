@@ -15,7 +15,7 @@ parser.add_argument(
     '--quiet',
     action='store_true',
     dest='quiet',
-    help='Be noisy'
+    help='Sets logging level to ERROR'
 )
 
 args = parser.parse_args()

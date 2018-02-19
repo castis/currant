@@ -5,24 +5,24 @@
   - hostname:
       name: "{{ inventory_hostname }}"
 
-  - authorized_key:
-      state: present
-      user: root
-      key: "{{ lookup('file', lookup('env','HOME')+'/.ssh/id_rsa.pub') }}"
+  # - authorized_key:
+  #     state: present
+  #     user: root
+  #     key: "{{ lookup('file', lookup('env','HOME')+'/.ssh/id_rsa.pub') }}"
 
-  - user:
-      name: pi
-      state: absent
-      remove: yes
+  # - user:
+  #     name: pi
+  #     state: absent
+  #     remove: yes
 
-  - name: clear motd
-    copy:
-      content: ""
-      dest: /etc/motd
-      force: yes
-      group: root
-      owner: root
-      mode: 0644
+  # - name: clear motd
+  #   copy:
+  #     content: ""
+  #     dest: /etc/motd
+  #     force: yes
+  #     group: root
+  #     owner: root
+  #     mode: 0644
 
   - apt:
       name: "{{ item }}"
