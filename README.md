@@ -20,21 +20,19 @@ Mounted to a [plexiglas frame](https://www.amazon.com/gp/product/B000G6SJS8) usi
 
 ### Software
 - [Python 3.6.4](https://docs.python.org/3/) with smbus2, psutils, and numpy
-- [xboxdrv](https://github.com/xboxdrv/xboxdrv) daemon for xbox controller support
-- [`hostapd` and `dnsmasq` for hosting a wifi network](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/)
+- [xboxdrv](https://github.com/xboxdrv/xboxdrv) for xbox controller support
+- [hostapd and dnsmasq for hosting a wifi network](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/)
 
 ## Installation
 
 ### Local
-
-Assuming `pipenv` and python 3.6 are installed.
 
 Install the USB Wireless Adapter on your local machine, then
 
     git clone git@github.com:castis/flightcontroller.git
     cd flightcontroller
 
-Run `pipenv --python 3.6` followed by `pipenv install`, enabling the `ansible` and `fab` commands.
+Run `pipenv --python 3.6` followed by `pipenv install`
 
 For easy network access, put this in `~/.ssh/config`
 
@@ -60,7 +58,7 @@ Assuming a fresh install of [Raspian Stretch Lite](https://www.raspberrypi.org/d
   - turn on ssh
   - enable I2C
 
-Drop the public key stored in your clipboard into `~/.ssh/authorized_keys` (remember to `chmod 700` the directory and `chmod 600` the file if you just created them!)
+Drop the public key stored in your clipboard into `~/.ssh/authorized_keys`
 
 #### Automated configuration
 
@@ -80,7 +78,16 @@ Using the USB wireless adapter, you should now be able to connect to the Pi thro
 
 ## Development
 
-`pipenv run python sync.py` will watch `code/*` for changes and sync `code/` to `/opt/flightcontroller` on the Pi.
+`pipenv run python sync.py` will watch `engine/*` for changes and sync `engine/` to `/opt/flightcontroller` on the Pi.
+
+On first run, you should
+
+    ssh havok
+    cd flightcontroller
+    pipenv --python 3.6
+    pipenv install
+
+Should be able to log in now `ssh havok`, `cd flightcontroller`,
 
 To run the program, log in, fire up a pipenv shell, and run it.
 

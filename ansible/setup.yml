@@ -1,29 +1,28 @@
 ---
 - hosts: flightcontrollers
   remote_user: root
-    network_name: havok
   tasks:
   - hostname:
       name: "{{ inventory_hostname }}"
 
-  # - authorized_key:
-  #     state: present
-  #     user: root
-  #     key: "{{ lookup('file', lookup('env','HOME')+'/.ssh/id_rsa.pub') }}"
+  - authorized_key:
+      state: present
+      user: root
+      key: "{{ lookup('file', lookup('env','HOME')+'/.ssh/id_rsa.pub') }}"
 
-  # - user:
-  #     name: pi
-  #     state: absent
-  #     remove: yes
+  - user:
+      name: pi
+      state: absent
+      remove: yes
 
-  # - name: clear motd
-  #   copy:
-  #     content: ""
-  #     dest: /etc/motd
-  #     force: yes
-  #     group: root
-  #     owner: root
-  #     mode: 0644
+  - name: clear motd
+    copy:
+      content: ""
+      dest: /etc/motd
+      force: yes
+      group: root
+      owner: root
+      mode: 0644
 
   - apt:
       name: "{{ item }}"
@@ -38,11 +37,8 @@
       - hostapd
     tags: [packages]
 
-  - pip:
-      name: "{{ item }}"
-    with_items:
-      - pipenv
-    tags: [packages,pip]
+  - pip: name=pipenv
+    tags: [pip]
 
   - file:
       path: /opt/flightcontroller
@@ -66,6 +62,7 @@
       enabled: yes
     tags: [xboxdrv]
 
+  # xboxdrv doesnt like xpad
   - modprobe:
       name: xpad
       state: absent
@@ -83,9 +80,9 @@
       - { src: "dhcpcd.conf", dest: "/etc/dhcpcd.conf" }
     notify:
     - restart dnsmasq
-    tags: [dhcp]
+    tags: [dhcp, wifi]
 
-  - name: configure hostapd
+  - name: configure hostapd environment
     copy:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
@@ -93,11 +90,11 @@
       group: root
       mode: 0644
     with_items:
-      - { src: "hostapd.conf", dest: "/etc/hostapd/hostapd.conf" }
       - { src: "hostapd", dest: "/etc/default/hostapd" }
+      - { src: "hostapd.conf", dest: "/etc/hostapd/hostapd.conf" }
     notify:
     - restart hostapd
-    tags: [hostapd]
+    tags: [hostapd, wifi]
 
   - name: configure interfaces
     copy:
@@ -108,7 +105,7 @@
       mode: 0644
     notify:
     - restart networking
-    tags: [interfaces]
+    tags: [interfaces, wifi]
 
   handlers:
     - name: restart xboxdrv
