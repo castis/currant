@@ -1,6 +1,5 @@
 ---
 - hosts: flightcontrollers
-  remote_user: root
   tasks:
   - hostname:
       name: "{{ inventory_hostname }}"
@@ -10,7 +9,8 @@
       user: root
       key: "{{ lookup('file', lookup('env','HOME')+'/.ssh/id_rsa.pub') }}"
 
-  - user:
+  - name: remove the default user
+    user:
       name: pi
       state: absent
       remove: yes
@@ -52,14 +52,7 @@
       owner: root
       group: root
       mode: 0644
-    notify:
-    - restart xboxdrv
-    tags: [xboxdrv]
-
-  - systemd:
-      name: xboxdrv
-      daemon_reload: yes
-      enabled: yes
+    notify: [xboxdrv]
     tags: [xboxdrv]
 
   # xboxdrv doesnt like xpad
@@ -68,7 +61,9 @@
       state: absent
     tags: [xboxdrv]
 
-  - name: configure dhcp
+  # blacklist xpad here
+
+  - name: dhcp
     copy:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
@@ -78,11 +73,10 @@
     with_items:
       - { src: "dnsmasq.conf", dest: "/etc/dnsmasq.conf" }
       - { src: "dhcpcd.conf", dest: "/etc/dhcpcd.conf" }
-    notify:
-    - restart dnsmasq
+    notify: [dnsmasq]
     tags: [dhcp, wifi]
 
-  - name: configure hostapd environment
+  - name: hostapd
     copy:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
@@ -92,39 +86,41 @@
     with_items:
       - { src: "hostapd", dest: "/etc/default/hostapd" }
       - { src: "hostapd.conf", dest: "/etc/hostapd/hostapd.conf" }
-    notify:
-    - restart hostapd
+    notify: [hostapd]
     tags: [hostapd, wifi]
 
-  - name: configure interfaces
+  - name: interfaces
     copy:
       src: interfaces
       dest: /etc/network/interfaces
       owner: root
       group: root
       mode: 0644
-    notify:
-    - restart networking
+    notify: [networking]
     tags: [interfaces, wifi]
 
   handlers:
-    - name: restart xboxdrv
+    - name: xboxdrv
       systemd:
         name: xboxdrv
         daemon_reload: yes
+        enabled: yes
         state: restarted
 
-    - name: restart dnsmasq
+    - name: dnsmasq
       systemd:
         name: dnsmasq
+        enabled: yes
         state: restarted
 
-    - name: restart networking
+    - name: networking
       systemd:
         name: networking
+        enabled: yes
         state: restarted
 
-    - name: restart hostapd
+    - name: hostapd
       systemd:
         name: hostapd
+        enabled: yes
         state: restarted

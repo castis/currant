@@ -2,7 +2,6 @@
 - hosts: flightcontrollers
   vars:
     src_dir: "Python-3.6.4"
-  remote_user: root
   tasks:
     - name: install build environment
       apt:
@@ -52,7 +51,6 @@
         - libgdbm-devr
         - libc6-dev
         - libbz2-dev
-      tags: [packages]
 
     - file:
         state: absent

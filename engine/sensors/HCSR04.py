@@ -52,14 +52,14 @@ class HCSR04():
         # distance in cm
         out = (end - start) * 17150
 
-        self.history.pop(0) # remove the item at the beginning
-        self.history.append(out) # tack a new value on the end
+        # self.history.pop(0) # remove the item at the beginning
+        # self.history.append(out) # tack a new value on the end
 
         # the signal is jumpy sometimes so smooth that shit
 
-        window = len(self.history)
-        weights = numpy.repeat(1.0, window) / window
-        out = numpy.convolve(self.history, weights, 'valid')
+        # window = len(self.history)
+        # weights = numpy.repeat(1.0, window) / window
+        # out = numpy.convolve(self.history, weights, 'valid')
 
         # here we could use the accelerometers z axis to calculate the angle
         # of the craft and then measure `out` as the hypotenuse of a right triangle
