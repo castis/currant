@@ -7,9 +7,9 @@ windows:
         focus: true
         commands:
         - git status
-      - name: 'inside'
+      - name: 'vehicle'
         commands:
         - ssh havok -t "cd /opt/flightcontroller; pipenv shell; bash --login"
-      - name: 'sync'
+      - name: 'tower'
         commands:
-        - pipenv run python sync.py
+        - pipenv run python tower.py

@@ -1,7 +1,7 @@
 #!/usr/bin/python3.6
 import argparse
 import logging
-import orion
+import engine
 
 
 parser = argparse.ArgumentParser(description='The power of FLIGHT!')
@@ -27,4 +27,4 @@ logging.basicConfig(
 )
 
 if __name__ == "__main__":
-    orion.Engine(args)
+    engine.Engine(args)

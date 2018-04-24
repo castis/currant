@@ -29,7 +29,8 @@
       args:
         chdir: "/tmp/{{ src_dir }}"
 
-    - command: "{{ item }}"
+    - name: install python
+      command: "{{ item }}"
       args:
         chdir: "/tmp/{{ src_dir }}"
       with_items:

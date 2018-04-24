@@ -1,4 +1,5 @@
-# ultrasonic sensor
+# ultrasonic distance sensor
+
 import time
 import numpy
 import logging

@@ -1,4 +1,4 @@
-# pressure-based altitude sensor
+# pressure altimeter
 
 from smbus2 import SMBus
 from sys import exit
