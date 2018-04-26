@@ -80,6 +80,23 @@ class SFTPClient(SFTPClient):
 
 sftp = SFTPClient.from_transport(ssh.get_transport())
 
+class FSEventHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        if os.path.basename(event.src_path) == os.path.basename(__file__):
+            logger.info("restarting self")
+            try:
+                p = psutil.Process(os.getpid())
+                for handler in p.open_files() + p.connections():
+                    os.close(handler.fd)
+            except Exception as e:
+                logging.error(e)
+
+            os.execl(sys.executable, sys.executable, *sys.argv)
+            return
+
+        if event.src_path.startswith(args.local_dir):
+            sync_code_folder()
+
 def sync_code_folder():
     try:
         logger.info('syncing')
@@ -88,29 +105,8 @@ def sync_code_folder():
     except Exception as e:
         logger.error(e)
 
-
 observer = Observer()
-
-# watch the vehicle folder for changes and sync to havok
-class ControlFSEvent(FileSystemEventHandler):
-    def on_modified(self, event):
-        sync_code_folder()
-
-observer.schedule(ControlFSEvent(), args.local_dir, recursive=True)
-
-# watch this file for changes and restart self on modify
-class SelfFSEvent(FileSystemEventHandler):
-    def on_modified(self, event):
-        logger.info('restarting tower')
-        try:
-            p = Process(os.getpid())
-            for handler in p.open_files() + p.connections():
-                os.close(handler.fd)
-        except Exception as e:
-            logging.error(e)
-        os.execl(sys.executable, sys.executable, *sys.argv)
-
-observer.schedule(SelfFSEvent(), os.path.basename(__file__), recursive=True)
+observer.schedule(FSEventHandler(), '.', recursive=True)
 
 try:
     logger.info('starting file watcher')
