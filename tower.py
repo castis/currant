@@ -15,7 +15,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 
-parser = ArgumentParser(description='Tower, ground control utility for the raspberry fli')
+parser = ArgumentParser(description='Tower, ground control utility')
 
 parser.add_argument('-u', '--user', default='root', help='Specify SSH user')
 parser.add_argument('-i', '--identity', default='~/.ssh/id_rsa', help='Specify SSH identity file location')
@@ -31,6 +31,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
 )
 logger = logging.getLogger()
+
 
 try:
     key_file = os.path.expanduser(args.identity)
@@ -80,8 +81,10 @@ class SFTPClient(SFTPClient):
 
 sftp = SFTPClient.from_transport(ssh.get_transport())
 
+
 class FSEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
+        # when this file is modified, restart it automatically
         if os.path.basename(event.src_path) == os.path.basename(__file__):
             logger.info("restarting self")
             try:
