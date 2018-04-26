@@ -1,9 +1,9 @@
 # Flight Controller
 
 
-## Built with
+## Hardware
 
-- [Raspberry Pi 3 B](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/), running [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), housed in a [Pibow 3 Coupé](https://shop.pimoroni.com/collections/raspberry-pi/products/pibow-coupe-for-raspberry-pi-3)
+- [Raspberry Pi 3 B](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/), running [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), housed in a [Pibow 3 Coupé](https://shop.pimoroni.com/products/pibow-coupe-for-raspberry-pi-3-b-plus)
 - [MPU-9250 Accelerometer/Gyroscope/Compass](https://www.amazon.com/gp/product/B01I1J0Z7Y)
 - [HC-SR04 Ultrasonic Sensor](https://www.sparkfun.com/products/13959)
 - (not yet implemented) [MPL3115A2 Altitude/Pressure Sensor](https://www.sparkfun.com/products/11084)
@@ -13,10 +13,10 @@
 - [Xbox 360 controller](https://en.wikipedia.org/wiki/List_of_Xbox_360_accessories#Xbox_360_controllers)
 - [Wireless Controller Receiver](https://en.wikipedia.org/wiki/List_of_Xbox_360_accessories#Wireless_Gaming_Receiver) with removed housing and shortened cable
 - [USB Wireless Adapter](https://www.amazon.com/Edimax-EW-7811Un-150Mbps-Raspberry-Supports/dp/B003MTTJOY) for connecting to the Pi over its own wifi network
-- Mounted to a [plexiglas frame](https://www.amazon.com/gp/product/B000G6SJS8) using [standoffs](https://www.amazon.com/gp/product/B01DD07PTW) and [velcro straps](https://www.amazon.com/gp/product/B01JNZ4R4W).
+- Mounted to a [polycarbonate frame](https://www.amazon.com/gp/product/B000G6SJS8) using [standoffs](https://www.amazon.com/gp/product/B01DD07PTW) and [velcro straps](https://www.amazon.com/gp/product/B01JNZ4R4W).
 
 
-### Software
+## Software
 
 - [Python 3.6.4](https://docs.python.org/3/) with smbus2, psutils, and numpy
 - [xboxdrv](https://github.com/xboxdrv/xboxdrv) for xbox controller support
@@ -25,76 +25,59 @@
 
 ## Setup
 
-### On the Raspberry PI
+### From the Raspberry Pi
 
-From a fresh install of [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), here's what I did.
+With a fresh install of [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), you should:
 
-Hook up a display, keyboard, and ethernet, run `raspi-config` and:
-- Advanced > Expand Filesystem
-- Interfacing Options > SSH > Enable
-- Interfacing Options > I2C > Enable
+Run `raspi-config` and;
+- Under `Advanced`, expand the filesystem.
+- Under `Interfacing Options`, enable SSH and I2C.
 
 Exit, restart, set root password, note the IP, mine was `192.168.1.235`, yours may vary.
 
-### On your laptop
+### From the development machine
 
-Make a new ssh key:
+Passwords are for suckers:
 
     ssh-keygen -t ecdsa -f ~/.ssh/id_ecdsa -N ''
     ssh-copy-id -i ~/.ssh/id_ecdsa root@192.168.1.235
 
-Drop this in your `~/.ssh/config`:
+Assuming `git`, `python 3.6`, [`pipenv`](https://docs.pipenv.org/) and [`ansible`](http://docs.ansible.com/ansible/latest/intro_installation.html) are already installed locally.
+
+Includes two ansible playbooks:
+
+- `ansible-playbook python3.yml` installs python 3.6.4 (takes a while)
+- `ansible-playbook setup.yml` configures the wireless network,
+
+The Pi should now be broadcasting a wifi network called `flightcontroller`. Credentials are in `./ansible/files/hostapd.conf`.
+
+For your `~/.ssh/config`:
 
     Host havok
         User root
         IdentityFile ~/.ssh/id_ecdsa
 
-And `192.168.1.235 havok` in my `/etc/hosts`
-
-Assuming `git`, [`pipenv`](https://docs.pipenv.org/install/#installing-pipenv) and [`ansible`](http://docs.ansible.com/ansible/latest/intro_installation.html) are already installed locally.
-
-    git clone git@github.com:castis/flightcontroller.git && cd flightcontroller
-
-#### Ansible configuration
-
-From the flightcontroller directory, `cd ansible/` and run the following (both will take a few minutes)
-
-- `ansible-playbook python3.yml` will install python 3.6.4 (took my RPi 3 around 20 minutes, compiles python from source)
-- `ansible-playbook setup.yml` will:
-  - set the hostname
-  - remove the default `pi` user
-  - erase the contents of `/etc/motd`
-  - install the python libraries for the flight controller
-  - install and configure xboxdrv
-  - install and configure dnsmasq and hostapd (using [this guide](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/) as a starting point)
-  - install pipenv
-
-Using the USB wireless adapter and the credentials from `./ansible/hostapd.conf`, you should now be able to connect to the WiFi network the Pi is broadcasting.
+And `192.168.1.235 havok` in `/etc/hosts`
 
 ## Development
 
-Locally, start a `pipenv shell`.
+### Locally
 
 `python tower.py` will watch and sync `vehicle/*` to `/opt/flightcontroller` on the Pi.
 
-On first run, you should
+### From the Pi
 
     ssh havok
-    cd flightcontroller
-    pipenv --python 3.6
-    pipenv install
-
-Should be able to log in now `ssh havok`, `cd flightcontroller`,
-
-To run the program, log in, fire up a pipenv shell, and run it.
-
-    ssh havok -t "cd /opt/flightcontroller; pipenv shell; bash --login"
+    cd /opt/flightcontroller
+    pipenv shell
     python main.py
+
+The initial `pipenv install` takes about 30 minutes.
 
 ### Extra
 
-`.itermocil` is the [itermocil](https://github.com/TomAnthony/itermocil) file I use for development to make things a little easier. `ln -s $(pwd)/.itermocil ~/.itermocil/flightcontroller` should symlink it into the right spot.
+Symlink the [`.itermocil`](https://github.com/TomAnthony/itermocil) file with `ln -s $(pwd)/.itermocil ~/.itermocil/flightcontroller`
 
 ### To do
 
-Have ansible configure the remote python virtual environment
+Have ansible configure the Pi python virtualenv

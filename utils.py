@@ -22,25 +22,7 @@ class Tower():
             logger.error(e)
 
 
-class SFTPClient(paramiko.SFTPClient):
-    # subclass that recursively sync a directory tree
-    def put_dir(self, source, target):
-        # target folder needs to already exist
-        for item in os.listdir(source):
-            source_path = os.path.join(source, item)
-            target_path = '%s/%s' % (target, item)
-            if os.path.isfile(source_path):
-                self.put(source_path, target_path)
-            else:
-                self.mkdir(target_path, ignore_existing=True)
-                self.put_dir(source_path, target_path)
 
-    def mkdir(self, path, mode=511, ignore_existing=False):
-        try:
-            super(SFTPClient, self).mkdir(path, mode)
-        except IOError:
-            if not ignore_existing:
-                raise
 
 
 # class FSEventHandler(FileSystemEventHandler):

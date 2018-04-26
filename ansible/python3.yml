@@ -3,6 +3,13 @@
   vars:
     src_dir: "Python-3.6.4"
   tasks:
+    - name: update && upgrade
+      apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+      tags: [apt]
+
     - name: install build environment
       apt:
         name: "{{ item }}"

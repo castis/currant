@@ -19,13 +19,6 @@
       owner: root
       mode: 0644
 
-  - name: system-wide upgrade
-    apt:
-      name: "*"
-      state: latest
-      update_cache: yes
-    tags: [apt]
-
   - apt:
       name: "{{ item }}"
       state: installed
@@ -66,7 +59,7 @@
 
   - name: blacklist xpad driver
     kernel_blacklist:
-      name: nouveau
+      name: xpad
       state: present
     tags: [xboxdrv]
 
