@@ -84,20 +84,29 @@
       group: root
       mode: 0644
     with_items:
-      - { src: "hostapd", dest: "/etc/default/hostapd" }
-      - { src: "hostapd.conf", dest: "/etc/hostapd/hostapd.conf" }
+      - { src: "hostapd", dest: "/etc/default/" }
+      - { src: "hostapd.conf", dest: "/etc/hostapd/" }
     notify: [hostapd]
     tags: [hostapd, wifi]
 
   - name: interfaces
     copy:
       src: interfaces
-      dest: /etc/network/interfaces
+      dest: /etc/network/
       owner: root
       group: root
       mode: 0644
     notify: [networking]
     tags: [interfaces, wifi]
+
+  - name: install preflight
+    copy:
+      src: preflight
+      dest: /usr/local/bin/
+      owner: root
+      group: staff
+      mode: a+x
+    tags: [preflight]
 
   handlers:
     - name: xboxdrv

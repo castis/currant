@@ -47,36 +47,39 @@ Assuming `git`, `python 3.6`, [`pipenv`](https://docs.pipenv.org/) and [`ansible
 Includes two ansible playbooks:
 
 - `ansible-playbook python3.yml` installs python 3.6.4 (takes a while)
-- `ansible-playbook setup.yml` configures the wireless network,
+- `ansible-playbook setup.yml` configures the wireless network, controller driver, house-cleaning, etc
 
 The Pi should now be broadcasting a wifi network called `flightcontroller`. Credentials are in `./ansible/files/hostapd.conf`.
 
-For your `~/.ssh/config`:
+For `~/.ssh/config`:
 
     Host havok
         User root
         IdentityFile ~/.ssh/id_ecdsa
 
-And `192.168.1.235 havok` in `/etc/hosts`
+For `/etc/hosts`:
+
+    192.168.1.235    havok
 
 ## Development
 
 ### Locally
 
-`python tower.py` will watch and sync `vehicle/*` to `/opt/flightcontroller` on the Pi.
+`python tower.py` will watch and sync `flightcontroller/*` to `/opt/flightcontroller` on the Pi.
 
-### From the Pi
+### Open a new terminal
+
+`preflight` will put you in the right environment to run `./fly.py`
 
     ssh havok
-    cd /opt/flightcontroller
-    pipenv shell
-    python main.py
+    preflight
+    ./fly.py
 
 The initial `pipenv install` takes about 30 minutes.
 
 ### Extra
 
-Symlink the [`.itermocil`](https://github.com/TomAnthony/itermocil) file with `ln -s $(pwd)/.itermocil ~/.itermocil/flightcontroller`
+Symlink the [`.itermocil`](https://github.com/TomAnthony/itermocil) file with `ln -s $(pwd)/.itermocil ~/.itermocil/flightcontroller.yml`
 
 ### To do
 

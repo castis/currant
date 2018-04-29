@@ -19,7 +19,7 @@ parser = ArgumentParser(description='Tower, ground control utility')
 
 parser.add_argument('-u', '--user', default='root', help='Specify SSH user')
 parser.add_argument('-i', '--identity', default='~/.ssh/id_rsa', help='Specify SSH identity file location')
-parser.add_argument('-l', '--local-dir', default='./vehicle', help='Local directory to watch and sync from')
+parser.add_argument('-l', '--local-dir', default='./flightcontroller', help='Local directory to watch and sync from')
 parser.add_argument('-r', '--remote-dir', default='/opt/flightcontroller', help='Remote directory to sync to')
 parser.add_argument('host', nargs='?', default='havok', help='Hostname of the remote machine')
 
@@ -28,7 +28,7 @@ args = parser.parse_args()
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    datefmt='%H:%M:%S',
 )
 logger = logging.getLogger()
 
@@ -41,22 +41,20 @@ try:
         'pkey': RSAKey.from_private_key_file(key_file),
     }
 except FileNotFoundError as e:
-    logger.error('%s not found' % args.identity)
+    logger.error(f'{args.identity} not found')
     exit(1)
 
 
-logger.info('connecting')
 try:
     ssh = SSHClient()
     ssh.load_system_host_keys()
     ssh.connect(args.host, **ssh_kwargs)
 except AuthenticationException as e:
-    logger.error('authentication error')
+    logger.error('Authentication error')
     exit(1)
 except socket.timeout:
-    logger.error('connection timeout, is the pi awake?')
+    logger.error('Connection timeout, is the Pi awake?')
     exit(1)
-logger.info('connected')
 
 
 class SFTPClient(SFTPClient):
@@ -65,7 +63,7 @@ class SFTPClient(SFTPClient):
         # target folder needs to already exist
         for item in os.listdir(source):
             source_path = os.path.join(source, item)
-            target_path = '%s/%s' % (target, item)
+            target_path = f'{target}/{item}'
             if os.path.isfile(source_path):
                 self.put(source_path, target_path)
             else:
@@ -86,7 +84,7 @@ class FSEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         # when this file is modified, restart it automatically
         if os.path.basename(event.src_path) == os.path.basename(__file__):
-            logger.info("restarting self")
+            logger.info('Restarting')
             try:
                 p = psutil.Process(os.getpid())
                 for handler in p.open_files() + p.connections():
@@ -98,13 +96,14 @@ class FSEventHandler(FileSystemEventHandler):
             return
 
         if event.src_path.startswith(args.local_dir):
+            logger.info('Syncing')
             sync_code_folder()
+
 
 def sync_code_folder():
     try:
-        logger.info('syncing')
         sftp.put_dir(args.local_dir, args.remote_dir)
-        ssh.exec_command('find %s -type f -iname "*.pyc" -delete' % args.remote_dir)
+        ssh.exec_command(f'find {args.remote_dir} -type f -iname "*.pyc" -delete')
     except Exception as e:
         logger.error(e)
 
@@ -112,15 +111,16 @@ observer = Observer()
 observer.schedule(FSEventHandler(), '.', recursive=True)
 
 try:
-    logger.info('starting file watcher')
+    logger.info('Starting observer')
     observer.start()
+    logger.info('Initial sync')
     sync_code_folder()
 
     while True:
         sleep(1)
 
 except KeyboardInterrupt:
-    logger.info('caught ^C, quitting')
+    logger.info('Caught ^C, quitting')
 
 except Exception as e:
     logger.error(e)
@@ -130,4 +130,4 @@ finally:
     sftp.close()
     ssh.close()
 
-logger.info('done')
+logger.info('Done')

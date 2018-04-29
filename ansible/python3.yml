@@ -1,14 +1,13 @@
 ---
 - hosts: flightcontrollers
   vars:
-    src_dir: "Python-3.6.4"
+    python_version: 3.6.4
   tasks:
     - name: update && upgrade
       apt:
         name: "*"
         state: latest
         update_cache: yes
-      tags: [apt]
 
     - name: install build environment
       apt:
@@ -27,24 +26,22 @@
         - libc6-dev
         - libbz2-dev
 
-    - unarchive:
-        src: "https://www.python.org/ftp/python/3.6.4/{{ src_dir }}.tgz"
+    - name: fetching source
+      unarchive:
+        src: "https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tgz"
         dest: "/tmp"
         remote_src: yes
 
-    - command: "./configure"
-      args:
-        chdir: "/tmp/{{ src_dir }}"
-
-    - name: install python
+    - name: installing python (takes like 30 minutes)
       command: "{{ item }}"
       args:
-        chdir: "/tmp/{{ src_dir }}"
+        chdir: "/tmp/Python-{{ python_version }}"
       with_items:
+        - ./configure
         - make
         - make install
 
-    - name: throw away build environment
+    - name: uninstall build environment
       apt:
         name: "{{ item }}"
         state: absent
@@ -62,4 +59,4 @@
 
     - file:
         state: absent
-        path: "/tmp/{{ src_dir }}"
+        path: "/tmp/Python-{{ python_version }}"

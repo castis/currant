@@ -7,9 +7,9 @@ windows:
         focus: true
         commands:
         - git status
-      - name: 'vehicle'
+      - name: 'flightcontroller'
         commands:
-        - ssh havok -t "cd /opt/flightcontroller; pipenv shell; bash --login"
+        - ssh havok -t "preflight; bash --login"
       - name: 'tower'
         commands:
-        - pipenv run python tower.py
+        - pipenv shell ./tower.py
