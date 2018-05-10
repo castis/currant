@@ -1,13 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # kill $(ps aux | grep tower.p[y] | awk '{print $2}')
 
 import sys
 import os
 import socket
 import logging
+import psutil
 
 from argparse import ArgumentParser
-from psutil import Process
 from paramiko import RSAKey, SFTPClient, SSHClient
 from paramiko.ssh_exception import SSHException, AuthenticationException
 from time import sleep
@@ -18,10 +18,14 @@ from watchdog.events import FileSystemEventHandler
 parser = ArgumentParser(description='Tower, ground control utility')
 
 parser.add_argument('-u', '--user', default='root', help='Specify SSH user')
-parser.add_argument('-i', '--identity', default='~/.ssh/id_rsa', help='Specify SSH identity file location')
-parser.add_argument('-l', '--local-dir', default='./flightcontroller', help='Local directory to watch and sync from')
-parser.add_argument('-r', '--remote-dir', default='/opt/flightcontroller', help='Remote directory to sync to')
-parser.add_argument('host', nargs='?', default='havok', help='Hostname of the remote machine')
+parser.add_argument('-i', '--identity', default='~/.ssh/id_rsa',
+                    help='Specify SSH identity file location')
+parser.add_argument('-l', '--local-dir', default='./flightcontroller',
+                    help='Local directory to watch and sync from')
+parser.add_argument('-r', '--remote-dir', default='/opt/flightcontroller',
+                    help='Remote directory to sync to')
+parser.add_argument('host', nargs='?', default='havok',
+                    help='Hostname of the remote machine')
 
 args = parser.parse_args()
 
@@ -59,6 +63,7 @@ except socket.timeout:
 
 class SFTPClient(SFTPClient):
     # modified to recursively sync a directory tree
+
     def put_dir(self, source, target):
         # target folder needs to already exist
         for item in os.listdir(source):
@@ -81,6 +86,7 @@ sftp = SFTPClient.from_transport(ssh.get_transport())
 
 
 class FSEventHandler(FileSystemEventHandler):
+
     def on_modified(self, event):
         # when this file is modified, restart it automatically
         if os.path.basename(event.src_path) == os.path.basename(__file__):
@@ -93,9 +99,8 @@ class FSEventHandler(FileSystemEventHandler):
                 logging.error(e)
 
             os.execl(sys.executable, sys.executable, *sys.argv)
-            return
 
-        if event.src_path.startswith(args.local_dir):
+        elif event.src_path.startswith(args.local_dir):
             logger.info('Syncing')
             sync_code_folder()
 
@@ -104,6 +109,8 @@ def sync_code_folder():
     try:
         sftp.put_dir(args.local_dir, args.remote_dir)
         ssh.exec_command(f'find {args.remote_dir} -type f -iname "*.pyc" -delete')
+        ssh.exec_command(
+            'kill -SIGUSR1 $(ps aux | grep fly.p[y] | awk \'{print $2}\')')
     except Exception as e:
         logger.error(e)
 

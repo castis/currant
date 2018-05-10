@@ -10,6 +10,7 @@ from utility import GPIO
 
 logger = logging.getLogger('HCSR04')
 
+
 class HCSR04():
     trigger = 22
     echo = 23
@@ -64,8 +65,8 @@ class HCSR04():
 
         # here we could use the accelerometers z axis to calculate the angle
         # of the craft and then measure `out` as the hypotenuse of a right triangle
-        # and that would give us the distance from ground no matter our position
-
+        # and that would give us the distance from ground no matter our
+        # position
 
         # return round(out)
         return out

@@ -3,18 +3,20 @@ import logging
 
 logger = logging.getLogger('GPIO')
 
+
 class Board:
     mode = None
     warnings = True
     channels = {}
+
 
 class GPIO():
     # left to implement
     # GPIO.SPI, GPIO.I2C, GPIO.HARD_PWM, GPIO.SERIAL, GPIO.UNKNOWN
 
     # GPIO modes
-    BCM = "BCM" # BroadCoM numbering
-    BOARD = "BOARD" # board numbering
+    BCM = "BCM"  # BroadCoM numbering
+    BOARD = "BOARD"  # board numbering
 
     # channel modes
     OUT = 0
@@ -82,7 +84,9 @@ class GPIO():
     def add_event_callback(channel, callback):
         pass
 
+
 class Channel():
+
     def __init__(self, pin=None, signal=None, mode=None, output=None, callback=None):
         self.mode = mode
         self.output = output
@@ -93,24 +97,30 @@ class Channel():
             "high" if mode else "low"
         ))
 
+
 class PWM():
+
     def __init__(self, channel, frequency):
         self.channel = channel
         self.frequency = frequency
         self.duty_cycle = 0
-        logger.info("init pwm channel %s; frequency: %s" % (self.channel, frequency))
+        logger.info("init pwm channel %s; frequency: %s" %
+                    (self.channel, frequency))
 
     def start(self, duty_cycle):
         self.duty_cycle = duty_cycle
-        logger.info("start pwm channel %s; duty cycle: %s" % (self.channel, duty_cycle))
+        logger.info("start pwm channel %s; duty cycle: %s" %
+                    (self.channel, duty_cycle))
 
     def stop(self):
         logger.info("stop pwm channel %s" % (self.channel))
 
     def ChangeDutyCycle(self, duty_cycle):
-        logger.info("channel %s: duty cycle: from %s to %s" % (self.channel, self.duty_cycle, duty_cycle))
+        logger.info("channel %s: duty cycle: from %s to %s" %
+                    (self.channel, self.duty_cycle, duty_cycle))
         self.duty_cycle = duty_cycle
 
     def ChangeFrequency(self, frequency):
-        logger.info("channel %s: frequency: from %s to %s" % (self.channel, self.frequency, frequency))
+        logger.info("channel %s: frequency: from %s to %s" %
+                    (self.channel, self.frequency, frequency))
         self.frequency = frequency

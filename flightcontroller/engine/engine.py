@@ -1,75 +1,42 @@
 import logging
-import time
-import traceback
+import sys
+
 
 from .display import Display
-from .vehicle import Vehicle, Motor
-from .controller import Controller
+from .vehicle import Vehicle
+from .input import Input
 from .chronograph import Chronograph
-from utility import GPIO
 
 
 logger = logging.getLogger('engine')
 
+
 class Engine(object):
-    vehicle = None
-    controller = None
-    chronograph = None
-    display = None
 
     def __init__(self, args):
-        logger.info('start')
-
-        try:
-            self.vehicle = Vehicle(motor_pins=[19, 16, 26, 20], nav_pins=[])
-            self.controller = Controller()
-            self.chronograph = Chronograph()
-            self.display = Display()
-
-        except Exception as e:
-            tb = traceback.format_exc()
-            logger.info('exception caught\n%s' % tb)
-            self.down()
-            return
-
-        logger.info('up')
+        self.chronograph = Chronograph()
+        self.input = Input()
+        self.vehicle = Vehicle(motor_pins=[19, 16, 26, 20])
+        self.display = Display()
 
         if not args.headless:
-            # dramatic pause so we can see the log
-            time.sleep(1)
             self.display.up()
 
-        try:
-            while True:
-                self.chronograph.pre_loop()
+    async def run(self):
+        while True:
+            self.chronograph.pre_loop()
 
-                self.vehicle.tick(self.chronograph.delta, self.controller.map)
+            self.input.update(self)
+            self.vehicle.update(self)
+            self.display.update(self)
 
-                if self.display.screen:
-                    self.display.tick(self)
+            await self.chronograph.post_loop()
 
-                self.chronograph.post_loop()
+    def reload(self):
+        pass
 
-        except KeyboardInterrupt:
-            self.display.down()
-            logger.info('caught ^C')
-
-        except Exception as e:
-            self.display.down()
-            tb = traceback.format_exc()
-            logger.info('exception caught\n%s' % tb)
-
-        finally:
-            self.down()
-
-    def down(self):
-        if self.vehicle:
-            self.vehicle.down()
-
-        if self.controller:
-            self.controller.down()
-
-        if self.chronograph:
-            self.chronograph.down()
-
-        logger.info('down')
+    def stop(self):
+        self.display.down()
+        self.vehicle.down()
+        self.input.down()
+        self.chronograph.down()

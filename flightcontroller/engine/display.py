@@ -8,6 +8,7 @@ import psutil
 process = psutil.Process(os.getpid())
 logger = logging.getLogger('display')
 
+
 class Display(object):
     screen = None
 
@@ -35,52 +36,55 @@ class Display(object):
         try:
             curses.start_color()
         except:
-             pass
-
+            pass
 
         self.engine_display = "engine:\n" \
-            + " time: {time:.2f}\n" \
-            + " fps: {fps:.2f}\n" \
-            + " memory used: {mem:.6f} MiB\n" \
-            + " throttle: {throttle:.2f}\n" \
-            + " altitude: {altitude:.2f} cm"
+            + " time: {time:.1f}\n" \
+            + " fps: {fps:.1f}\n" \
+            + " memory used: {mem:.2f} MiB\n" \
+            + " throttle: {throttle:.2f}\n"
+        # + " altitude: {altitude:.2f} cm"
 
         self.motor_screen = curses.newwin(5, 20, 0, 30)
         self.motor_display = "motors:\n" \
             + "{0: 2d}  {1: 2d}\n" \
             + "{2: 2d}  {3: 2d}"
 
-        self.accelerometer_screen = curses.newwin(5, 20, 7, 0)
-        self.accelerometer_display = "accelerometer:\n" \
-            + " x: {x:>7.3f}\n" \
-            + " y: {y:>7.3f}\n" \
-            + " z: {z:>7.3f}"
+        # self.accelerometer_screen = curses.newwin(5, 20, 7, 0)
+        # self.accelerometer_display = "accelerometer:\n" \
+        #     + " x: {x:>7.3f}\n" \
+        #     + " y: {y:>7.3f}\n" \
+        #     + " z: {z:>7.3f}"
 
-        self.gyroscope_screen = curses.newwin(5, 20, 7, 17)
-        self.gyroscope_display = "gyroscope:\n" \
-            + " x: {x:>7.3f}\n" \
-            + " y: {y:>7.3f}\n" \
-            + " z: {z:>7.3f}"
+        # self.gyroscope_screen = curses.newwin(5, 20, 7, 17)
+        # self.gyroscope_display = "gyroscope:\n" \
+        #     + " x: {x:>7.3f}\n" \
+        #     + " y: {y:>7.3f}\n" \
+        #     + " z: {z:>7.3f}"
 
-        self.magnet_screen = curses.newwin(5, 20, 7, 32)
-        self.magnet_display = "magnet:\n" \
-            + " x: {x:>7.3f}\n" \
-            + " y: {y:>7.3f}\n" \
-            + " z: {z:>7.3f}"
+        # self.magnet_screen = curses.newwin(5, 20, 7, 32)
+        # self.magnet_display = "magnet:\n" \
+        #     + " x: {x:>7.3f}\n" \
+        #     + " y: {y:>7.3f}\n" \
+        #     + " z: {z:>7.3f}"
 
-        self.controller_display = "controller:\n" \
-            + " map: {map}\n" \
-            + " raw: {raw}"
+        self.input_display = "input:\n" \
+            + " map: {input}"
+        # + " raw: {raw}"
 
-    def tick(self, engine):
+    def update(self, engine):
+        if not self.screen:
+            return
+
         self.screen.erase()
 
         self.screen.addstr(0, 0, self.engine_display.format(**{
             'time': engine.chronograph.current,
+            # 'run_time': engine.chronograph,
             'fps': engine.chronograph.fps,
             'mem': process.memory_info().rss / float(2 ** 20),
-            'throttle': engine.vehicle.throttle,
-            'altitude': engine.vehicle.altitude,
+            'throttle': engine.vehicle.throttle.value,
+            # 'altitude': engine.vehicle.altitude,
         }))
 
         formatted = self.motor_display.format(*[
@@ -89,14 +93,14 @@ class Display(object):
         ])
         self.motor_screen.addstr(0, 0, formatted)
 
-        formatted = self.accelerometer_display.format(**engine.vehicle.accel)
-        self.accelerometer_screen.addstr(0, 0, formatted)
+        # formatted = self.accelerometer_display.format(**engine.vehicle.accel)
+        # self.accelerometer_screen.addstr(0, 0, formatted)
 
-        formatted = self.gyroscope_display.format(**engine.vehicle.gyro)
-        self.gyroscope_screen.addstr(0, 0, formatted)
+        # formatted = self.gyroscope_display.format(**engine.vehicle.gyro)
+        # self.gyroscope_screen.addstr(0, 0, formatted)
 
-        formatted = self.magnet_display.format(**engine.vehicle.magnet)
-        self.magnet_screen.addstr(0, 0, formatted)
+        # formatted = self.magnet_display.format(**engine.vehicle.magnet)
+        # self.magnet_screen.addstr(0, 0, formatted)
 
         # print_these = self.stream.getvalue().split("\n")
         # print_these.reverse()
@@ -105,17 +109,16 @@ class Display(object):
         #     self.screen.addstr(i, 40, line)
         #     i -= 1
 
-        self.screen.addstr(12, 0, self.controller_display.format(**{
-            'map': engine.controller.map,
-            'raw': engine.controller.raw,
+        self.screen.addstr(12, 0, self.input_display.format(**{
+            'input': engine.input,
+            # 'raw': engine.input._raw,
         }))
-
 
         self.screen.noutrefresh()
         self.motor_screen.noutrefresh()
-        self.accelerometer_screen.noutrefresh()
-        self.gyroscope_screen.noutrefresh()
-        self.magnet_screen.noutrefresh()
+        # self.accelerometer_screen.noutrefresh()
+        # self.gyroscope_screen.noutrefresh()
+        # self.magnet_screen.noutrefresh()
 
         curses.doupdate()
 
@@ -125,5 +128,3 @@ class Display(object):
             curses.endwin()
             self.screen = None
             logger.info('down')
-        else:
-            logger.info('already down')

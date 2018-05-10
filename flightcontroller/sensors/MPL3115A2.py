@@ -3,11 +3,11 @@
 from smbus2 import SMBus
 from sys import exit
 
-#I2C ADDRESS/BITS
+# I2C ADDRESS/BITS
 
 MPL3115A2_ADDRESS = (0x60)
 
-#REGISTERS
+# REGISTERS
 
 MPL3115A2_REGISTER_STATUS = (0x00)
 MPL3115A2_REGISTER_STATUS_TDR = 0x02
@@ -34,7 +34,7 @@ MPL3115A2_BAR_IN_MSB = (0x14)
 
 MPL3115A2_WHOAMI = (0x0C)
 
-#BITS
+# BITS
 
 MPL3115A2_PT_DATA_CFG = 0x13
 MPL3115A2_PT_DATA_CFG_TDEFE = 0x01
@@ -85,6 +85,7 @@ bus.write_byte_data(
     MPL3115A2_PT_DATA_CFG_PDEFE |
     MPL3115A2_PT_DATA_CFG_DREM)
 
+
 def poll():
     sta = 0
     while not (sta & MPL3115A2_REGISTER_STATUS_PDR):
@@ -101,14 +102,15 @@ def altitude():
 
     poll()
 
-    msb, csb, lsb = bus.read_i2c_block_data(MPL3115A2_ADDRESS,MPL3115A2_REGISTER_PRESSURE_MSB,3)
+    msb, csb, lsb = bus.read_i2c_block_data(
+        MPL3115A2_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, 3)
     print(msb, csb, lsb)
 
-    alt = ((msb<<24) | (csb<<16) | (lsb<<8)) / 65536.
+    alt = ((msb << 24) | (csb << 16) | (lsb << 8)) / 65536.
 
     # correct sign
-    if alt > (1<<15):
-        alt -= 1<<16
+    if alt > (1 << 15):
+        alt -= 1 << 16
 
     return alt
 
@@ -123,12 +125,14 @@ def pressure():
 
     poll()
 
-    msb, csb, lsb = bus.read_i2c_block_data(MPL3115A2_ADDRESS,MPL3115A2_REGISTER_PRESSURE_MSB,3)
+    msb, csb, lsb = bus.read_i2c_block_data(
+        MPL3115A2_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, 3)
     print(msb, csb, lsb)
 
-    return ((msb<<16) | (csb<<8) | lsb) / 64.
+    return ((msb << 16) | (csb << 8) | lsb) / 64.
+
 
 def calibrate():
-    pa = int(pressure()/2)
-    bus.write_i2c_block_data(MPL3115A2_ADDRESS, MPL3115A2_BAR_IN_MSB, [pa>>8 & 0xff, pa & 0xff])
-
+    pa = int(pressure() / 2)
+    bus.write_i2c_block_data(MPL3115A2_ADDRESS, MPL3115A2_BAR_IN_MSB, [
+                             pa >> 8 & 0xff, pa & 0xff])

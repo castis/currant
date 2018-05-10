@@ -1,5 +1,5 @@
 # coding: utf-8
-## @package MPU9250
+# @package MPU9250
 #  This is a FaBo9Axis_MPU9250 library for the FaBo 9AXIS I2C Brick.
 #
 #  http://fabo.io/202.html
@@ -18,89 +18,91 @@ SLAVE_ADDRESS = 0x68
 
 # AK8963 I2C slave address
 AK8963_SLAVE_ADDRESS = 0x0C
-DEVICE_ID            = 0x71
+DEVICE_ID = 0x71
 
 # MPU-9250 Register Addresses
 # sample rate driver
-SMPLRT_DIV     = 0x19
-CONFIG         = 0x1A
-GYRO_CONFIG    = 0x1B
-ACCEL_CONFIG   = 0x1C
+SMPLRT_DIV = 0x19
+CONFIG = 0x1A
+GYRO_CONFIG = 0x1B
+ACCEL_CONFIG = 0x1C
 ACCEL_CONFIG_2 = 0x1D
-LP_ACCEL_ODR   = 0x1E
-WOM_THR        = 0x1F
-FIFO_EN        = 0x23
-I2C_MST_CTRL   = 0x24
+LP_ACCEL_ODR = 0x1E
+WOM_THR = 0x1F
+FIFO_EN = 0x23
+I2C_MST_CTRL = 0x24
 I2C_MST_STATUS = 0x36
-INT_PIN_CFG    = 0x37
-INT_ENABLE     = 0x38
-INT_STATUS     = 0x3A
-ACCEL_OUT      = 0x3B
-TEMP_OUT       = 0x41
-GYRO_OUT       = 0x43
+INT_PIN_CFG = 0x37
+INT_ENABLE = 0x38
+INT_STATUS = 0x3A
+ACCEL_OUT = 0x3B
+TEMP_OUT = 0x41
+GYRO_OUT = 0x43
 
 I2C_MST_DELAY_CTRL = 0x67
-SIGNAL_PATH_RESET  = 0x68
-MOT_DETECT_CTRL    = 0x69
-USER_CTRL          = 0x6A
-PWR_MGMT_1         = 0x6B
-PWR_MGMT_2         = 0x6C
-FIFO_R_W           = 0x74
-WHO_AM_I           = 0x75
+SIGNAL_PATH_RESET = 0x68
+MOT_DETECT_CTRL = 0x69
+USER_CTRL = 0x6A
+PWR_MGMT_1 = 0x6B
+PWR_MGMT_2 = 0x6C
+FIFO_R_W = 0x74
+WHO_AM_I = 0x75
 
 # Gyro Full Scale Select
-GFS_250  = 0x00
-GFS_500  = 0x01
+GFS_250 = 0x00
+GFS_500 = 0x01
 GFS_1000 = 0x02
 GFS_2000 = 0x03
 
 # Accel Full Scale Select
-AFS_2G   = 0x00
-AFS_4G   = 0x01
-AFS_8G   = 0x02
-AFS_16G  = 0x03
+AFS_2G = 0x00
+AFS_4G = 0x01
+AFS_8G = 0x02
+AFS_16G = 0x03
 
 # AK8963 Register Addresses
-AK8963_ST1        = 0x02
+AK8963_ST1 = 0x02
 AK8963_MAGNET_OUT = 0x03
-AK8963_CNTL1      = 0x0A
-AK8963_CNTL2      = 0x0B
-AK8963_ASAX       = 0x10
+AK8963_CNTL1 = 0x0A
+AK8963_CNTL2 = 0x0B
+AK8963_ASAX = 0x10
 
 # CNTL1 Mode select
-AK8963_MODE_DOWN   = 0x00 # power down mode
-AK8963_MODE_ONE    = 0x01 # one shot data output
+AK8963_MODE_DOWN = 0x00  # power down mode
+AK8963_MODE_ONE = 0x01  # one shot data output
 
 # Continous data output 8Hz
-AK8963_MODE_C8HZ   = 0x02
+AK8963_MODE_C8HZ = 0x02
 
 # Continous data output 100Hz
 AK8963_MODE_C100HZ = 0x06
 
 # Magneto Scale Select
-AK8963_BIT_14 = 0x00 # 14bit
-AK8963_BIT_16 = 0x01 # 16bit
+AK8963_BIT_14 = 0x00  # 14bit
+AK8963_BIT_16 = 0x01  # 16bit
 
 bus = SMBus(1)
 
-## MPU9250 I2C Control class
+# MPU9250 I2C Control class
+
+
 class MPU9250:
 
-    ## Constructor
+    # Constructor
     #  @param [in] address MPU-9250 I2C slave address default:0x68
     def __init__(self, address=SLAVE_ADDRESS):
         self.address = address
         self.configMPU9250(GFS_250, AFS_2G)
         self.configAK8963(AK8963_MODE_C8HZ, AK8963_BIT_16)
 
-    ## Search Device
+    # Search Device
     #  @param [in] self The object pointer.
     #  @retval true device connected
     #  @retval false device error
     def searchDevice(self):
         return bus.read_byte_data(self.address, WHO_AM_I) == DEVICE_ID
 
-    ## Configure MPU-9250
+    # Configure MPU-9250
     #  @param [in] self The object pointer.
     #  @param [in] gfs Gyro Full Scale Select(default:GFS_250[+250dps])
     #  @param [in] afs Accel Full Scale Select(default:AFS_2G[2g])
@@ -120,7 +122,7 @@ class MPU9250:
             self.ares = 4.0 / 32768.0
         elif afs == AFS_8G:
             self.ares = 8.0 / 32768.0
-        else: # afs == AFS_16G:
+        else:  # afs == AFS_16G:
             self.ares = 16.0 / 32768.0
 
         # sleep off
@@ -150,14 +152,14 @@ class MPU9250:
         bus.write_byte_data(self.address, INT_PIN_CFG, 0x02)
         time.sleep(0.1)
 
-    ## Configure AK8963
+    # Configure AK8963
     #  @param [in] self The object pointer.
     #  @param [in] mode Magneto Mode Select(default:AK8963_MODE_C8HZ[Continous 8Hz])
     #  @param [in] mfs Magneto Scale Select(default:AK8963_BIT_16[16bit])
     def configAK8963(self, mode, mfs):
         if mfs == AK8963_BIT_14:
             self.mres = 4912.0 / 8190.0
-        else: #  mfs == AK8963_BIT_16:
+        else:  # mfs == AK8963_BIT_16:
             self.mres = 4912.0 / 32760.0
 
         bus.write_byte_data(AK8963_SLAVE_ADDRESS, AK8963_CNTL1, 0x00)
@@ -179,17 +181,18 @@ class MPU9250:
         time.sleep(0.01)
 
         # set scale&continous mode
-        bus.write_byte_data(AK8963_SLAVE_ADDRESS, AK8963_CNTL1, (mfs<<4|mode))
+        bus.write_byte_data(AK8963_SLAVE_ADDRESS,
+                            AK8963_CNTL1, (mfs << 4 | mode))
         time.sleep(0.01)
 
-    ## brief Check data ready
+    # brief Check data ready
     #  @param [in] self The object pointer.
     #  @retval True data is ready
     #  @retval False data is not ready
     def checkDataReady(self):
         return bus.read_byte_data(self.address, INT_STATUS) & 0x01
 
-    ## Read accelerometer
+    # Read accelerometer
     #  @param [in] self The object pointer.
     #  @retval x : x-axis data
     #  @retval y : y-axis data
@@ -202,7 +205,7 @@ class MPU9250:
             "z": round(self.dataConv(data[5], data[4]) * self.ares, 3),
         }
 
-    ## Read gyro
+    # Read gyro
     #  @param [in] self The object pointer.
     #  @retval x : x-gyro data
     #  @retval y : y-gyro data
@@ -215,7 +218,7 @@ class MPU9250:
             "z": round(self.dataConv(data[5], data[4]) * self.gres, 3),
         }
 
-    ## Read magneto
+    # Read magneto
     #  @param [in] self The object pointer.
     #  @retval x : X-magneto data
     #  @retval y : y-magneto data
@@ -227,11 +230,12 @@ class MPU9250:
 
         # check data ready
         drdy = bus.read_byte_data(AK8963_SLAVE_ADDRESS, AK8963_ST1)
-        if drdy & 0x01 :
-            data = bus.read_i2c_block_data(AK8963_SLAVE_ADDRESS, AK8963_MAGNET_OUT, 7)
+        if drdy & 0x01:
+            data = bus.read_i2c_block_data(
+                AK8963_SLAVE_ADDRESS, AK8963_MAGNET_OUT, 7)
 
             # check overflow
-            if (data[6] & 0x08)!=0x08:
+            if (data[6] & 0x08) != 0x08:
                 x = self.dataConv(data[0], data[1])
                 y = self.dataConv(data[2], data[3])
                 z = self.dataConv(data[4], data[5])
@@ -246,7 +250,7 @@ class MPU9250:
             "z": z
         }
 
-    ## Read temperature
+    # Read temperature
     #  @param [out] temperature temperature(degrees C)
     def readTemperature(self):
         data = bus.read_i2c_block_data(self.address, TEMP_OUT, 2)
@@ -254,7 +258,7 @@ class MPU9250:
 
         return round((temp / 333.87 + 21.0), 3)
 
-    ## Data Convert
+    # Data Convert
     # @param [in] self The object pointer.
     # @param [in] data1 LSB
     # @param [in] data2 MSB
@@ -262,5 +266,5 @@ class MPU9250:
     def dataConv(self, data1, data2):
         value = data1 | (data2 << 8)
         if(value & (1 << 16 - 1)):
-            value -= (1<<16)
+            value -= (1 << 16)
         return value
