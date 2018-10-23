@@ -10,15 +10,6 @@ from time import time
 import engine
 
 
-logging.basicConfig(
-    level=logging.INFO,  # if args.quiet else logging.INFO,
-    format="%(asctime)s - %(name)s - %(message)s",
-    datefmt="%H:%M:%S",
-)
-
-logger = logging.getLogger()
-
-
 parser = argparse.ArgumentParser(description='The power of FLIGHT!')
 parser.add_argument(
     '--headless',
@@ -27,37 +18,49 @@ parser.add_argument(
     help='Run without curses frontend'
 )
 parser.add_argument(
-    '--quiet',
+    '--debug',
     action='store_true',
-    dest='quiet',
-    help='Sets logging level to ERROR'
+    dest='debug',
+    help='Sets debug mode'
 )
 
 args = parser.parse_args()
 
-engine = engine.Engine(args)
+logging.basicConfig(
+    level=logging.DEBUG if args.debug else logging.INFO,
+    format="%(asctime)s - %(name)s - %(message)s",
+    datefmt="%H:%M:%S",
+)
+
+logger = logging.getLogger()
+
+flight_controller = engine.Engine(args)
 loop = asyncio.get_event_loop()
 
 try:
-    # def hot_reload(signame):
-    #     logger.info('SIGUSR1 received')
+    def hot_reload(signame):
+        pass
+        # logger.info('SIGUSR1 received')
+        # reload(engine)
+        # flight_controller.reload(engine)
 
-    # signame = 'SIGUSR1'
-    # loop.add_signal_handler(
-    #     getattr(signal, signame),
-    #     functools.partial(hot_reload, signame)
-    # )
+    signame = 'SIGUSR1'
+    loop.add_signal_handler(
+        getattr(signal, signame),
+        functools.partial(hot_reload, signame)
+    )
 
-    exit(loop.run_until_complete(engine.run()))
+    code = loop.run_until_complete(flight_controller.run())
+    exit(code)
 except KeyboardInterrupt as e:
     print('caught ^C')
-    engine.stop()
+    flight_controller.stop()
 
     # Do not show `asyncio.CancelledError` exceptions during shutdown
     # (a lot of these may be generated, skip this if you prefer to see them)
-    def shutdown_exception_handler(loop, context):
-        if "exception" not in context or not isinstance(context["exception"], asyncio.CancelledError):
-            loop.default_exception_handler(context)
+    # def shutdown_exception_handler(loop, context):
+    #     if 'exception' not in context or not isinstance(context['exception'], asyncio.CancelledError):
+    #         loop.default_exception_handler(context)
     # loop.set_exception_handler(shutdown_exception_handler)
 
     # Handle shutdown gracefully by waiting for all tasks to be cancelled

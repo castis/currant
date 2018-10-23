@@ -1,80 +1,95 @@
 import logging
-from utility import StoppableThread
 from evdev import categorize, ecodes, InputDevice
 
 logger = logging.getLogger('input')
 
 
 class Input(object):
-    A = False
-    B = False
-    X = False
-    Y = False
-    LT = 0
-    RT = 0
-    LB = False
-    RB = False
-    LS = False
-    RS = False
-    RX = 0
-    RY = 0
-
-    _device = None
-    _raw = {}
+    state = {
+        'A': False,
+        'B': False,
+        'X': False,
+        'Y': False,
+        'LT': 0,
+        'RT': 0,
+        'LB': False,
+        'RB': False,
+        'LS': False,
+        'RS': False,
+        'LX': 0,
+        'LY': 0,
+        'RX': 0,
+        'RY': 0,
+        'KILL': 0,
+    }
+    device = None
+    raw = {}
 
     def __init__(self):
         try:
-            self._device = InputDevice('/dev/input/event0')
+            self.device = InputDevice('/dev/input/event0')
         except FileNotFoundError:
             logger.error('cant open input device')
             exit(1)
-
         logger.info('up')
 
+    # dont do this here, display all the buttons in Display()
     def __repr__(self):
-        return f'''RT:{self.RT}'''
+        return 'LT: RT:%s' % (self.state['RT'],)
 
-    def update(self, engine):
+    def get(self, button):
+        return self.state.get(button, None)
+
+    def update(self):
         try:
-            for event in self._device.read():
+            for event in self.device.read():
                 self.receive_event(event)
         except BlockingIOError:
             pass
 
     def receive_event(self, event):
-        self._raw[event.code] = event.value
+        self.raw[event.code] = event.value
 
         if event.code == ecodes.BTN_A:
-            self.A = event.value == 1
+            self.state['A'] = event.value == 1
         elif event.code == ecodes.BTN_B:
-            self.B = event.value == 1
+            self.state['B'] = event.value == 1
         elif event.code == ecodes.BTN_X:
-            self.X = event.value == 1
+            self.state['X'] = event.value == 1
         elif event.code == ecodes.BTN_Y:
-            self.Y = event.value == 1
+            self.state['Y'] = event.value == 1
 
         elif event.code == ecodes.ABS_BRAKE:
-            self.LT = event.value
+            self.state['LT'] = event.value
         elif event.code == ecodes.ABS_GAS:
-            self.RT = event.value
+            self.state['RT'] = event.value
 
         elif event.code == ecodes.BTN_TL:
-            self.LB = event.value == 1
+            self.state['LB'] = event.value == 1
         elif event.code == ecodes.BTN_TR:
-            self.RB = event.value == 1
+            self.state['RB'] = event.value == 1
 
         elif event.code == ecodes.BTN_THUMBL:
-            self.LS = event.value == 1
+            self.state['LS'] = event.value == 1
         elif event.code == ecodes.BTN_THUMBR:
-            self.RS = event.value == 1
+            self.state['RS'] = event.value == 1
+
+        elif event.code == ecodes.ABS_X:
+            self.state['LX'] = event.value
+        elif event.code == ecodes.ABS_Y:
+            self.state['LY'] = event.value
 
         elif event.code == ecodes.ABS_RX:
-            self.RX = event.value
+            self.state['RX'] = event.value
         elif event.code == ecodes.ABS_RY:
-            self.RY = event.value
+            self.state['RY'] = event.value
+
+        elif event.code == ecodes.BTN_MODE:
+            self.state['KILL'] = event.value == 1
 
     def down(self):
-        self._device.close()
+        # self.device.close()
+        # self.device = None
         logger.info('down')
 
 # {

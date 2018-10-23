@@ -10,7 +10,7 @@ import psutil
 from argparse import ArgumentParser
 from paramiko import RSAKey, SFTPClient, SSHClient
 from paramiko.ssh_exception import SSHException, AuthenticationException
-from time import sleep
+from time import sleep, strftime
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -59,6 +59,9 @@ except AuthenticationException as e:
 except socket.timeout:
     logger.error('Connection timeout, is the Pi awake?')
     exit(1)
+except socket.error:
+    logger.error('Socket error')
+    exit(1)
 
 
 class SFTPClient(SFTPClient):
@@ -101,11 +104,11 @@ class FSEventHandler(FileSystemEventHandler):
             os.execl(sys.executable, sys.executable, *sys.argv)
 
         elif event.src_path.startswith(args.local_dir):
-            logger.info('Syncing')
             sync_code_folder()
 
 
 def sync_code_folder():
+    logger.info('Syncing')
     try:
         sftp.put_dir(args.local_dir, args.remote_dir)
         ssh.exec_command(f'find {args.remote_dir} -type f -iname "*.pyc" -delete')
@@ -118,10 +121,19 @@ observer = Observer()
 observer.schedule(FSEventHandler(), '.', recursive=True)
 
 try:
-    logger.info('Starting observer')
+    logger.info('Watching local files for changes')
     observer.start()
-    logger.info('Initial sync')
+
+    logger.info('Setting flight controller system clock')
+    date = strftime('%m%d%H%M%Y.%S')
+    ssh.exec_command(f'date {date}')
+
     sync_code_folder()
+
+    # if args.getlogs:
+    #     logger.info('Fetching debug logs')
+    #     os.system(f'rsync -a {args.host}:{args.remote_dir}/logs ./')
+    #     ssh.exec_command(f'find {args.remote_dir}/logs -type f -delete')
 
     while True:
         sleep(1)

@@ -17,35 +17,33 @@ class Chronograph(object):
     current = 0
     previous = 0
     delta = 0
+    sleep = 0
 
     def __init__(self):
-        self.started = time()
-        self.previous = time()
+        self.started = self.previous = time()
         logger.info('up')
 
     def __repr__(self):
-        return '%02d:%02d:%02d' % self._since_start()
+        return '%02d:%02d:%02d' % self.since_start()
 
-    def pre_loop(self):
+    async def update(self):
+        if self.cap > 0:
+            self.sleep = 1.0 / self.cap - (time() - self.current)
+            if self.sleep > 0.0:
+                await asyncio.sleep(self.sleep)
+        self.fps = 1.0 / (time() - self.current)
+        self.previous = self.current
         self.current = time()
         self.delta = self.current - self.previous
 
-    async def post_loop(self):
-        if self.cap > 0:
-            sleep_for = 1.0 / self.cap - (time() - self.current)
-            if sleep_for > 0.0:
-                await asyncio.sleep(sleep_for)
-        self.fps = 1.0 / (time() - self.current)
-        self.previous = self.current
-
-    def _since_start(self):
+    def since_start(self):
         seconds = int(time() - self.started)
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
         return (h, m, s)
 
     def get_run_time(self):
-        (h, m, s) = self._since_start()
+        (h, m, s) = self.since_start()
         run_time = []
 
         if h > 0:

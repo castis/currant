@@ -1,5 +1,6 @@
 # Flight Controller
 
+<img src="https://raw.githubusercontent.com/castis/flightcontroller/master/image.jpg">
 
 ## Hardware
 

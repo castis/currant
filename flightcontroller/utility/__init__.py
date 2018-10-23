@@ -12,4 +12,4 @@ except ImportError:
     from .RPi import GPIO
 
 GPIO.setmode(GPIO.BCM)
-# GPIO.setwarnings(False)
+GPIO.setwarnings(False)
