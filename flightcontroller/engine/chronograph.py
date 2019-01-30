@@ -3,12 +3,12 @@ from time import time
 import asyncio
 
 
-logger = logging.getLogger('chronograph')
+logger = logging.getLogger("chronograph")
 
 
 def pluralize(word, number):
-    plural = 's' if number != 1 else ''
-    return f'{number} {word}{plural}'
+    plural = "s" if number != 1 else ""
+    return f"{number} {word}{plural}"
 
 
 class Chronograph(object):
@@ -21,10 +21,10 @@ class Chronograph(object):
 
     def __init__(self):
         self.started = self.previous = time()
-        logger.info('up')
+        logger.info("up")
 
     def __repr__(self):
-        return '%02d:%02d:%02d' % self.since_start()
+        return "%02d:%02d:%02d" % self.since_start()
 
     async def update(self):
         if self.cap > 0:
@@ -47,21 +47,21 @@ class Chronograph(object):
         run_time = []
 
         if h > 0:
-            run_time.append(pluralize('hour', h))
+            run_time.append(pluralize("hour", h))
         if m > 0:
-            run_time.append(pluralize('minute', m))
-        run_time.append(pluralize('second', s))
+            run_time.append(pluralize("minute", m))
+        run_time.append(pluralize("second", s))
 
         run_time_len = len(run_time)
         if run_time_len == 3:
-            run_time = f'{run_time[0]}, {run_time[1]}, and {run_time[2]}'
+            run_time = f"{run_time[0]}, {run_time[1]}, and {run_time[2]}"
         elif run_time_len == 2:
-            run_time = f'{run_time[0]} and {run_time[1]}'
+            run_time = f"{run_time[0]} and {run_time[1]}"
         else:
             run_time = run_time[0]
 
         return run_time
 
     def down(self):
-        logger.info('down')
-        logger.info(f'run time: {self.get_run_time()}')
+        logger.info("down")
+        logger.info(f"run time: {self.get_run_time()}")

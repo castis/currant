@@ -2,7 +2,6 @@ import time
 
 
 class PID(object):
-
     def __init__(self, p=0, i=0, d=0):
         self.Kp = p
         self.Ki = i
@@ -14,7 +13,7 @@ class PID(object):
         self.error = None
 
     def __unicode__(self):
-        return f'PID controller'
+        return f"PID controller"
 
     def __format__(self, data):
         return self.__unicode__()
@@ -42,8 +41,7 @@ class PID(object):
 
         # derivative
         if time_delta > 0:
-            alpha -= self.Kd * \
-                ((feedback - self.previous_feedback) / float(time_delta))
+            alpha -= self.Kd * ((feedback - self.previous_feedback) / float(time_delta))
 
         self.previous_feedback = feedback
 

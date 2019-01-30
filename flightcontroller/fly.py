@@ -10,18 +10,15 @@ from time import time
 import engine
 
 
-parser = argparse.ArgumentParser(description='The power of FLIGHT!')
+parser = argparse.ArgumentParser(description="The power of FLIGHT!")
 parser.add_argument(
-    '--headless',
-    action='store_true',
-    dest='headless',
-    help='Run without curses frontend'
+    "--headless",
+    action="store_true",
+    dest="headless",
+    help="Run without curses frontend",
 )
 parser.add_argument(
-    '--debug',
-    action='store_true',
-    dest='debug',
-    help='Sets debug mode'
+    "--debug", action="store_true", dest="debug", help="Sets debug mode"
 )
 
 args = parser.parse_args()
@@ -38,22 +35,22 @@ flight_controller = engine.Engine(args)
 loop = asyncio.get_event_loop()
 
 try:
+
     def hot_reload(signame):
         pass
         # logger.info('SIGUSR1 received')
         # reload(engine)
         # flight_controller.reload(engine)
 
-    signame = 'SIGUSR1'
+    signame = "SIGUSR1"
     loop.add_signal_handler(
-        getattr(signal, signame),
-        functools.partial(hot_reload, signame)
+        getattr(signal, signame), functools.partial(hot_reload, signame)
     )
 
     code = loop.run_until_complete(flight_controller.run())
     exit(code)
 except KeyboardInterrupt as e:
-    print('caught ^C')
+    print("caught ^C")
     flight_controller.stop()
 
     # Do not show `asyncio.CancelledError` exceptions during shutdown
@@ -64,8 +61,9 @@ except KeyboardInterrupt as e:
     # loop.set_exception_handler(shutdown_exception_handler)
 
     # Handle shutdown gracefully by waiting for all tasks to be cancelled
-    tasks = asyncio.gather(*asyncio.Task.all_tasks(loop=loop),
-                           loop=loop, return_exceptions=True)
+    tasks = asyncio.gather(
+        *asyncio.Task.all_tasks(loop=loop), loop=loop, return_exceptions=True
+    )
     tasks.add_done_callback(lambda t: loop.stop())
     tasks.cancel()
 

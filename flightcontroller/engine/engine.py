@@ -10,7 +10,7 @@ from .output import Output
 from .chronograph import Chronograph
 
 
-logger = logging.getLogger('engine')
+logger = logging.getLogger("engine")
 
 
 class Engine(object):
@@ -40,7 +40,7 @@ class Engine(object):
                 if self.output:
                     self.output.tick(self)
 
-                if self.running and self.input.state['KILL'] == True:
+                if self.running and self.input.state["KILL"] == True:
                     self.stop()
                     exit()
         except:

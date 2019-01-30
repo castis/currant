@@ -27,7 +27,7 @@
       - python3-smbus
       - python3-dev
       - python3-setuptools
-      - xboxdrv
+      # - xboxdrv
       - dnsmasq
       - hostapd
     tags: [packages, apt]
@@ -42,26 +42,26 @@
       state: directory
       mode: 0755
 
-  - name: configure xboxdrv
-    copy:
-      src: xboxdrv.service
-      dest: /etc/systemd/system/xboxdrv.service
-      owner: root
-      group: root
-      mode: 0644
-    notify: [xboxdrv]
-    tags: [xboxdrv]
+  # - name: configure xboxdrv
+  #   copy:
+  #     src: xboxdrv.service
+  #     dest: /etc/systemd/system/xboxdrv.service
+  #     owner: root
+  #     group: root
+  #     mode: 0644
+  #   notify: [xboxdrv]
+  #   tags: [xboxdrv]
 
-  - modprobe:
-      name: xpad
-      state: absent
-    tags: [xboxdrv]
+  # - modprobe:
+  #     name: xpad
+  #     state: absent
+  #   tags: [xboxdrv]
 
-  - name: blacklist xpad driver
-    kernel_blacklist:
-      name: xpad
-      state: present
-    tags: [xboxdrv]
+  # - name: blacklist xpad driver
+  #   kernel_blacklist:
+  #     name: xpad
+  #     state: present
+  #   tags: [xboxdrv]
 
   - name: dhcp
     copy:
@@ -109,12 +109,12 @@
     tags: [preflight]
 
   handlers:
-    - name: xboxdrv
-      systemd:
-        name: xboxdrv
-        daemon_reload: yes
-        enabled: yes
-        state: restarted
+    # - name: xboxdrv
+    #   systemd:
+    #     name: xboxdrv
+    #     daemon_reload: yes
+    #     enabled: yes
+    #     state: restarted
 
     - name: dnsmasq
       systemd:
