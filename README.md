@@ -28,10 +28,10 @@ Connect the vehicle to the local network via ethernet (the wireless card is used
 
 - note the IP
 - set a root password
-- change `PermitRootLogin` for the moment: `sed -i -E "s/^#?(PermitRootLogin)/\1 yes/" /etc/ssh/sshd_config` and `systemctl restart ssh`
 - Run `raspi-config`
 	- Under `Advanced`, expand the filesystem if it didn't automatically do this at first boot.
 	- Under `Interfacing Options`, enable `SSH` and `I2C`.
+- change `PermitRootLogin` for the moment: `sed -i -E "s/^#?(PermitRootLogin)/\1 yes/" /etc/ssh/sshd_config` and `systemctl restart ssh`
 
 
 ### The development machine
