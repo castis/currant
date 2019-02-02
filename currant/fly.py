@@ -35,10 +35,8 @@ flight_controller = engine.Engine(args)
 loop = asyncio.get_event_loop()
 
 try:
-
     def hot_reload(signame):
-        pass
-        # logger.info('SIGUSR1 received')
+        logger.info('SIGUSR1 received')
         # reload(engine)
         # flight_controller.reload(engine)
 

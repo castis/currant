@@ -1,1 +1,1 @@
-cd /opt/flightcontroller && pipenv shell
+cd /opt/currant && pipenv shell

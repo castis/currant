@@ -21,7 +21,7 @@ class Engine(object):
         self.chronograph = Chronograph()
         self.input = Input()
         self.vehicle = Vehicle(motor_pins=[19, 16, 26, 20])
-        self.display = Display()
+        # self.display = Display()
 
         if args.debug:
             self.output = Output()
@@ -35,18 +35,18 @@ class Engine(object):
             while True:
                 self.input.update()
                 self.vehicle.update(self)
-                self.display.update(self)
-                await self.chronograph.update()
-                if self.output:
-                    self.output.tick(self)
+                # self.display.update(self)
+                self.chronograph.update()
+                # if self.output:
+                #     self.output.tick(self)
 
-                if self.running and self.input.state["KILL"] == True:
-                    self.stop()
-                    exit()
+                # if self.running and self.input.state["KILL"] == True:
+                    # self.stop()
+                    # exit()
         except:
-            if self.display:
-                self.display.down()
-                raise
+            # if self.display:
+                # self.display.down()
+            raise
 
     def reload(self, engine):
         pass
@@ -59,9 +59,9 @@ class Engine(object):
 
     def stop(self):
         self.running = False
-        self.display.down()
+        # self.display.down()
         self.vehicle.down()
         self.input.down()
         self.chronograph.down()
-        if self.output:
-            self.output.down()
+        # if self.output:
+            # self.output.down()

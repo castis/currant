@@ -1,0 +1,13 @@
+[Unit]
+Description=Currant
+After=network.target
+
+[Service]
+User=root
+Restart=always
+Type=simple
+WorkingDirectory=/opt/currant
+ExecStart=/usr/local/bin/pipenv run python3 /opt/currant/fly.py
+
+[Install]
+WantedBy=multi-user.target

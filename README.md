@@ -1,85 +1,87 @@
-# Flight Controller
+# Currant
 
-<img src="https://raw.githubusercontent.com/castis/flightcontroller/master/image.jpg">
+Python flight controller setup for a Raspberry Pi.
+
+<img src="https://gitlab.com/b1tzky/currant/raw/master/image.jpg">
 
 ## Hardware
 
-- [Raspberry Pi 3 B](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/), running [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), housed in a [Pibow 3 Coupé](https://shop.pimoroni.com/products/pibow-coupe-for-raspberry-pi-3-b-plus)
+- [Raspberry Pi 3 B+](https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/), running [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), housed in a [Pibow 3 Coupé](https://shop.pimoroni.com/products/pibow-coupe-for-raspberry-pi-3-b-plus)
+- [LDPower D-250 ESC/Motor set](https://hobbyking.com/en_us/ldpower-d250-2-multicopter-power-system-2206-1900kv-6-x-3-4-pack.html)
+- [Turnigy 2200mAh 3S 20C Battery](https://hobbyking.com/en_us/turnigy-2200mah-3s-25c-lipo-pack.html)
+- [OCDAY 3A Power Distribution Board](https://www.amazon.com/gp/product/B01IOHWHI8)
+- [8BitDo SN30 Pro](http://www.8bitdo.com/sn30-pro-g-classic-or-sn30-pro-sn/)
+- [USB Wireless Adapter](https://www.edimax.com/edimax/merchandise/merchandise_detail/data/edimax/global/wireless_adapters_n150/ew-7811un) for connecting to the Pi over its own wifi network
 - [MPU-9250 Accelerometer/Gyroscope/Compass](https://www.amazon.com/gp/product/B01I1J0Z7Y)
 - [HC-SR04 Ultrasonic Sensor](https://www.sparkfun.com/products/13959)
 - (not yet implemented) [MPL3115A2 Altitude/Pressure Sensor](https://www.sparkfun.com/products/11084)
-- [LDPower D-250 ESC/Motor set](https://hobbyking.com/en_us/ldpower-d250-2-multicopter-power-system-2206-1900kv-6-x-3-4-pack.html) with [JST connectors](https://www.amazon.com/gp/product/B01M5AHF0Z) for convenience
-- [Turnigy 2200mAh 3S 20C Battery](https://hobbyking.com/en_us/turnigy-2200mah-3s-25c-lipo-pack.html)
-- [OCDAY 3A Power Distribution Board](https://www.amazon.com/gp/product/B01IOHWHI8) with bonus 5v output
-- [8BitDo SN30 Pro](http://www.8bitdo.com/sn30-pro-g-classic-or-sn30-pro-sn/)
-- [USB Wireless Adapter](https://www.amazon.com/Edimax-EW-7811Un-150Mbps-Raspberry-Supports/dp/B003MTTJOY) for connecting to the Pi over its own wifi network
 - All mounted to a custom [polycarbonate](https://www.amazon.com/gp/product/B000G6SJS8) frame with [standoffs](https://www.amazon.com/gp/product/B01DD07PTW) and [velcro](https://www.amazon.com/gp/product/B01JNZ4R4W).
 
 
-## Software
+## Initial setup
 
-- [Python 3.6.4](https://docs.python.org/3/) with smbus2, psutils, and numpy
-- [hostapd and dnsmasq for hosting a wifi network](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/)
+### The vehicle
+
+From a fresh install of [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/):
+
+Connect the vehicle to the local network via ethernet (the wireless card is used to manage a network)
+
+- note the IP
+- set a root password
+- change `PermitRootLogin` for the moment: `sed -i -E "s/^#?(PermitRootLogin)/\1 yes/" /etc/ssh/sshd_config` and `systemctl restart ssh`
+- Run `raspi-config`
+	- Under `Advanced`, expand the filesystem if it didn't automatically do this at first boot.
+	- Under `Interfacing Options`, enable `SSH` and `I2C`.
 
 
-## Setup
+### The development machine
 
-### From the Raspberry Pi
-
-With a fresh install of [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), you should:
-
-Run `raspi-config` and;
-- Under `Advanced`, expand the filesystem.
-- Under `Interfacing Options`, enable SSH and I2C.
-
-Exit, restart, set root password, note the IP, mine was `192.168.1.235`, yours may vary.
-
-### From the development machine
-
-Passwords are for suckers:
-
-    ssh-keygen -t ecdsa -f ~/.ssh/id_ecdsa -N ''
-    ssh-copy-id -i ~/.ssh/id_ecdsa root@192.168.1.235
-
-Assuming `git`, `python`, `pipenv` and `ansible` are already installed locally.
-
-Includes two ansible playbooks:
-
-- `ansible-playbook python3.yml` installs python 3.6.4 (takes a while)
-- `ansible-playbook setup.yml` configures the wireless network, house-cleaning, etc
-
-The Pi should now be broadcasting a wifi network called `flightcontroller`. Credentials are in `./ansible/files/hostapd.conf`.
-
-For `~/.ssh/config`:
-
-    Host havok
-        User root
-        IdentityFile ~/.ssh/id_ecdsa
+Assuming `git`, `python >= 3.6`, `ansible`, and `pipenv` are installed
 
 For `/etc/hosts`:
 
-    192.168.1.235    havok
+    192.168.1.XXX currant
+
+Create and sync an SSH key:
+
+    ssh-keygen -t ecdsa -f ~/.ssh/id_ecdsa -N ''
+    ssh-copy-id -i ~/.ssh/id_ecdsa root@currant
+
+For `~/.ssh/config`:
+
+    Host currant
+        User root
+        IdentityFile ~/.ssh/id_ecdsa
+
+The ansible playbooks will configure the rest; `cd` into `./ansible/` and run them
+
+- `ansible-playbook python3.yml` installs the python version set in that file (takes like half an hour)
+- `ansible-playbook setup.yml` configures the wireless network, interfaces, house-cleaning, etc
+
+The USB wireless card can now be used to connect to the vehicle's wireless network.
+By default, the network is `currant`, as are the username and password.
+Once connected:
+- check the default gateway
+- change the IP in your hosts file to that
 
 ## Development
 
-### Locally
+I've been using [`itermocil`](https://github.com/TomAnthony/itermocil) to open several shell instances.
 
-`python tower.py` will watch and sync `flightcontroller/*` to `/opt/flightcontroller` on the Pi.
+One for git/local process work, one for running the main python process on the vehicle, and one for watching/syncing local code to it.
 
-### Open a new terminal
+### The local processes
 
-`preflight` will put you in the right environment to run `./fly.py`
+From the base dir, `pipenv shell ./tower.py` will watch and sync `./currant/*` to `/opt/currant` on the vehicle.
 
-    ssh havok
+### The remote process
+
+A `preflight` script is included to `cd` into `/opt/currant` and then start a pipenv shell.
+
+The main process can be started with.
+
+    ssh currant
     preflight
     ./fly.py
 
-The initial `pipenv install` takes about 30 minutes.
-
-### Extra
-
-Symlink the [`.itermocil`](https://github.com/TomAnthony/itermocil) file with `ln -s $(pwd)/.itermocil ~/.itermocil/flightcontroller.yml`
-
-### To do
-
-Have ansible configure the Pi python virtualenv
+The first time `preflight` is run, it will install all the necessary dependencies. That takes about 30 minutes.

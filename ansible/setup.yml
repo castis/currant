@@ -1,5 +1,6 @@
+# ANSIBLE_CONFIG=./ansible.cfg ansible-playbook setup.yml
 ---
-- hosts: flightcontrollers
+- hosts: currants
   tasks:
   - hostname:
       name: "{{ inventory_hostname }}"
@@ -10,58 +11,51 @@
       state: absent
       remove: yes
 
-  - name: clear motd
-    copy:
-      content: ""
-      dest: /etc/motd
-      force: yes
-      group: root
-      owner: root
-      mode: 0644
-
   - apt:
       name: "{{ item }}"
-      state: installed
+      state: present
     with_items:
       - vim
+      - git
       - python3-smbus
       - python3-dev
+      - python3-pip
       - python3-setuptools
-      # - xboxdrv
       - dnsmasq
       - hostapd
     tags: [packages, apt]
 
-  - pip:
-      name: pipenv
-      executable: pip3
-    tags: [pip]
+  # TODO: why is this failing?
+  # - pip:
+  #     name: pipenv
+  #     executable: pip3
+  #   tags: [pip]
 
   - file:
-      path: /opt/flightcontroller
+      path: /opt/currant
       state: directory
       mode: 0755
 
-  # - name: configure xboxdrv
+  # one day we maybe we'll deploy this way
+  # - git:
+  #     repo: git@gitlab.com:b1tzky/currant.git
+  #     dest: /tmp/currant
+  #     depth: 1
+
+  # - copy:
+  #     src: /tmp/currant/currant
+  #     dest: /opt/currant
+  #     remote_src: yes
+
+  # - name: configure systemd service
   #   copy:
-  #     src: xboxdrv.service
-  #     dest: /etc/systemd/system/xboxdrv.service
+  #     src: currant.service
+  #     dest: /etc/systemd/system/currant.service
   #     owner: root
   #     group: root
   #     mode: 0644
-  #   notify: [xboxdrv]
-  #   tags: [xboxdrv]
-
-  # - modprobe:
-  #     name: xpad
-  #     state: absent
-  #   tags: [xboxdrv]
-
-  # - name: blacklist xpad driver
-  #   kernel_blacklist:
-  #     name: xpad
-  #     state: present
-  #   tags: [xboxdrv]
+  #   notify: [systemd]
+  #   tags: [systemd]
 
   - name: dhcp
     copy:
@@ -109,9 +103,9 @@
     tags: [preflight]
 
   handlers:
-    # - name: xboxdrv
+    # - name: systemd
     #   systemd:
-    #     name: xboxdrv
+    #     name: currant
     #     daemon_reload: yes
     #     enabled: yes
     #     state: restarted

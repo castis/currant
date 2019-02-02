@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # kill $(ps aux | grep tower.p[y] | awk '{print $2}')
 
-"""
-This program opens an sftp connection to
-"""
-
 import sys
 import os
 import socket
@@ -17,7 +13,7 @@ from paramiko.ssh_exception import SSHException, AuthenticationException
 from time import sleep, strftime
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
+r
 
 parser = ArgumentParser(description="Tower, ground control utility")
 
@@ -31,17 +27,23 @@ parser.add_argument(
 parser.add_argument(
     "-l",
     "--local-dir",
-    default="./flightcontroller",
+    default="./currant",
     help="Local directory to watch and sync from",
 )
 parser.add_argument(
     "-r",
     "--remote-dir",
-    default="/opt/flightcontroller",
+    default="/opt/currant",
     help="Remote directory to sync to",
 )
 parser.add_argument(
-    "host", nargs="?", default="havok", help="Hostname of the remote machine"
+    "host", nargs="?", default="currant", help="Hostname of the remote machine"
+)
+parser.add_argument(
+    "-c",
+    "--configure",
+    action="store_true",
+    help="",
 )
 
 args = parser.parse_args()
@@ -50,6 +52,11 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(message)s", datefmt="%H:%M:%S"
 )
 logger = logging.getLogger()
+
+
+if args.configure:
+    # run ansible playbooks
+    pass
 
 
 try:
@@ -104,7 +111,7 @@ sftp = SFTPClient.from_transport(ssh.get_transport())
 
 class FSEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
-        # when this file is modified, restart it automatically
+        # when this file is modified, restart this process
         if os.path.basename(event.src_path) == os.path.basename(__file__):
             logger.info("Restarting")
             try:
@@ -125,7 +132,8 @@ def sync_code_folder():
     try:
         sftp.put_dir(args.local_dir, args.remote_dir)
         ssh.exec_command(f'find {args.remote_dir} -type f -iname "*.pyc" -delete')
-        ssh.exec_command("kill -SIGUSR1 $(ps aux | grep fly.p[y] | awk '{print $2}')")
+        # ssh.exec_command("kill -SIGUSR1 $(ps aux | grep fly.p[y] | awk '{print $2}')")
+        # ssh.exec_command("systemctl restart currant.service")
     except Exception as e:
         logger.error(e)
 
@@ -137,7 +145,7 @@ try:
     logger.info("Watching local files for changes")
     observer.start()
 
-    logger.info("Setting flight controller system clock")
+    logger.info("Syncing clocks")
     date = strftime("%m%d%H%M%Y.%S")
     ssh.exec_command(f"date {date}")
 
@@ -162,4 +170,4 @@ finally:
     sftp.close()
     ssh.close()
 
-logger.info("Done")
+logger.info("Aviation!")

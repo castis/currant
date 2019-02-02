@@ -1,15 +1,15 @@
 windows:
-  - name: flightcontroller
-    root: ~/Code/flightcontroller
+  - name: currant
+    root: ~/Code/currant
     layout: main-vertical
     panes:
       - name: 'workspace'
         focus: true
         commands:
         - git status
-      - name: 'flightcontroller'
+      - name: 'currant'
         commands:
-        - ssh havok -t "preflight; bash --login"
+        - ssh currant -t "preflight; bash --login"
       - name: 'tower'
         commands:
         - pipenv shell ./tower.py

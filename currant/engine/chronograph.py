@@ -6,9 +6,9 @@ import asyncio
 logger = logging.getLogger("chronograph")
 
 
-def pluralize(word, number):
-    plural = "s" if number != 1 else ""
-    return f"{number} {word}{plural}"
+def pluralize(word, n):
+    s = "s" if n != 1 else ""
+    return f"{n} {word}{s}"
 
 
 class Chronograph(object):
@@ -43,24 +43,14 @@ class Chronograph(object):
         return (h, m, s)
 
     def get_run_time(self):
-        (h, m, s) = self.since_start()
         run_time = []
-
+        (h, m, s) = self.since_start()
         if h > 0:
             run_time.append(pluralize("hour", h))
         if m > 0:
             run_time.append(pluralize("minute", m))
         run_time.append(pluralize("second", s))
-
-        run_time_len = len(run_time)
-        if run_time_len == 3:
-            run_time = f"{run_time[0]}, {run_time[1]}, and {run_time[2]}"
-        elif run_time_len == 2:
-            run_time = f"{run_time[0]} and {run_time[1]}"
-        else:
-            run_time = run_time[0]
-
-        return run_time
+        return ", ".join(run_time)
 
     def down(self):
         logger.info("down")

@@ -1,7 +1,7 @@
 ---
-- hosts: flightcontrollers
+- hosts: currants
   vars:
-    python_version: 3.6.4
+    python_version: 3.6.8
   tasks:
     - name: update && upgrade
       apt:
@@ -12,8 +12,7 @@
     - name: install build environment
       apt:
         name: "{{ item }}"
-        state: installed
-        update_cache: yes
+        state: present
       with_items:
         - build-essential
         - checkinstall
@@ -32,7 +31,7 @@
         dest: "/tmp"
         remote_src: yes
 
-    - name: installing python (takes like 30 minutes)
+    - name: installing python (takes like 30-40 minutes)
       command: "{{ item }}"
       args:
         chdir: "/tmp/Python-{{ python_version }}"
