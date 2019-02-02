@@ -24,15 +24,17 @@ Python flight controller setup for a Raspberry Pi.
 
 From a fresh install of [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/):
 
-Connect the vehicle to the local network via ethernet (the wireless card is used to manage a network)
+Connect it to the local network via ethernet (the wireless card is used to manage a network)
 
 - note the IP
 - set a root password
 - Run `raspi-config`
+	- Under `Localisation Options`, set the proper keyboard layout.
 	- Under `Advanced`, expand the filesystem if it didn't automatically do this at first boot.
 	- Under `Interfacing Options`, enable `SSH` and `I2C`.
 - change `PermitRootLogin` for the moment: `sed -i -E "s/^#?(PermitRootLogin)/\1 yes/" /etc/ssh/sshd_config` and `systemctl restart ssh`
 
+Ansible will change that `yes` to a `prohibit-password` later.
 
 ### The development machine
 
@@ -53,16 +55,19 @@ For `~/.ssh/config`:
         User root
         IdentityFile ~/.ssh/id_ecdsa
 
-The ansible playbooks will configure the rest; `cd` into `./ansible/` and run them
+The ansible playbooks will configure the rest; go into `./ansible/` and run them
 
 - `ansible-playbook python3.yml` installs the python version set in that file (takes like half an hour)
 - `ansible-playbook setup.yml` configures the wireless network, interfaces, house-cleaning, etc
 
+([these](https://frillip.com/using-your-raspberry-pi-3-as-a-wifi-access-point-with-hostapd/) are the instructions I used to originally configure the wireless setup)
+
 The USB wireless card can now be used to connect to the vehicle's wireless network.
-By default, the network is `currant`, as are the username and password.
-Once connected:
-- check the default gateway
-- change the IP in your hosts file to that
+By default, the network is `currant`, as is the username. Password is `currantpw`.
+
+Once connected, change the line in `/etc/hosts/` to:
+
+	172.24.1.1 currant
 
 ## Development
 

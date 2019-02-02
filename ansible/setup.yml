@@ -5,6 +5,11 @@
   - hostname:
       name: "{{ inventory_hostname }}"
 
+  - lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: '^PermitRootLogin'
+      line: 'PermitRootLogin prohibit-password'
+
   - name: remove the default user
     user:
       name: pi
