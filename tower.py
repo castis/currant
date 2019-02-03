@@ -8,21 +8,24 @@ import logging
 import psutil
 
 from argparse import ArgumentParser
-from paramiko import RSAKey, SFTPClient, SSHClient
+from paramiko import ECDSAKey, SFTPClient, SSHClient
 from paramiko.ssh_exception import SSHException, AuthenticationException
 from time import sleep, strftime
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-r
+
 
 parser = ArgumentParser(description="Tower, ground control utility")
 
-parser.add_argument("-u", "--user", default="root", help="Specify SSH user")
+parser.add_argument(
+    "host", nargs="?", default="currant", help="Hostname of the vehicle"
+)
+parser.add_argument("-u", "--user", default="root", help="Valid SSH user name")
 parser.add_argument(
     "-i",
     "--identity",
-    default="~/.ssh/id_rsa",
-    help="Specify SSH identity file location",
+    default="~/.ssh/currant_ecdsa",
+    help="Path to an SSH key file",
 )
 parser.add_argument(
     "-l",
@@ -37,13 +40,10 @@ parser.add_argument(
     help="Remote directory to sync to",
 )
 parser.add_argument(
-    "host", nargs="?", default="currant", help="Hostname of the remote machine"
-)
-parser.add_argument(
     "-c",
     "--configure",
     action="store_true",
-    help="",
+    help="Run ansible setup and exit",
 )
 
 args = parser.parse_args()
@@ -56,15 +56,15 @@ logger = logging.getLogger()
 
 if args.configure:
     # run ansible playbooks
-    pass
+    logger.info("here is where we run ansible playbooks")
+    exit(0)
 
 
 try:
     key_file = os.path.expanduser(args.identity)
     ssh_kwargs = {
         "username": args.user,
-        "timeout": 2,
-        "pkey": RSAKey.from_private_key_file(key_file),
+        "pkey": ECDSAKey.from_private_key_file(key_file),
     }
 except FileNotFoundError as e:
     logger.error(f"{args.identity} not found")
@@ -142,11 +142,11 @@ observer = Observer()
 observer.schedule(FSEventHandler(), ".", recursive=True)
 
 try:
-    logger.info("Watching local files for changes")
+    logger.info("Watching for changes")
     observer.start()
 
-    logger.info("Syncing clocks")
     date = strftime("%m%d%H%M%Y.%S")
+    logger.info(f"Set vehicle clock to {date}")
     ssh.exec_command(f"date {date}")
 
     sync_code_folder()

@@ -7,8 +7,8 @@
 
   - lineinfile:
       path: /etc/ssh/sshd_config
-      regexp: '^PermitRootLogin'
-      line: 'PermitRootLogin prohibit-password'
+      regexp: '^#?(PermitRootLogin)'
+      line: '\1 prohibit-password'
 
   - name: remove the default user
     user:

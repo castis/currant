@@ -6,7 +6,7 @@ iface eth0 inet dhcp
 
 allow-hotplug wlan0
 iface wlan0 inet static
-    address 192.168.10.1
+    address 172.24.1.1
     netmask 255.255.255.0
-    network 192.168.10.0
-    broadcast 192.168.10.255
+    network 172.24.1.0
+    broadcast 172.24.1.255

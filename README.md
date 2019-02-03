@@ -44,16 +44,16 @@ For `/etc/hosts`:
 
     192.168.1.XXX currant
 
-Create and sync an SSH key:
+Create and sync an SSH key (the keys I generated from macOS with OpenSSH didn't play with paramiko nicely, I had to generate the keys on the Pi and move them locally):
 
-    ssh-keygen -t ecdsa -f ~/.ssh/id_ecdsa -N ''
+    ssh-keygen -t ecdsa -f ~/.ssh/currant_ecdsa -b 521 -N ''
     ssh-copy-id -i ~/.ssh/id_ecdsa root@currant
 
 For `~/.ssh/config`:
 
     Host currant
         User root
-        IdentityFile ~/.ssh/id_ecdsa
+        IdentityFile ~/.ssh/currant_ecdsa
 
 The ansible playbooks will configure the rest; go into `./ansible/` and run them
 
@@ -65,13 +65,13 @@ The ansible playbooks will configure the rest; go into `./ansible/` and run them
 The USB wireless card can now be used to connect to the vehicle's wireless network.
 By default, the network is `currant`, as is the username. Password is `currantpw`.
 
-Once connected, change the line in `/etc/hosts/` to:
+Once connected, change the line in your `/etc/hosts/` to:
 
 	172.24.1.1 currant
 
 ## Development
 
-I've been using [`itermocil`](https://github.com/TomAnthony/itermocil) to open several shell instances.
+I've been using [`itermocil --here`](https://github.com/TomAnthony/itermocil) to open several shell instances.
 
 One for git/local process work, one for running the main python process on the vehicle, and one for watching/syncing local code to it.
 
