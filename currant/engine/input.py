@@ -1,5 +1,7 @@
 import logging
-from evdev import categorize, ecodes, InputDevice
+
+import bluetooth
+from evdev import InputDevice, categorize, ecodes
 
 logger = logging.getLogger("input")
 
@@ -31,6 +33,18 @@ class Input(object):
         # except FileNotFoundError:
         #     logger.error("cant open input device")
         #     exit(1)
+
+
+        nearby_devices = bluetooth.discover_devices(lookup_names=True)
+
+        print(nearby_devices)
+
+        for bdaddr in nearby_devices:
+            print(bdaddr)
+            # if target_name == bluetooth.lookup_name( bdaddr ):
+            #     target_address = bdaddr
+            #     break
+
         logger.info("up")
 
     # dont do this here, display all the buttons in Display()
