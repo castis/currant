@@ -10,42 +10,44 @@ class Input(object):
         "B": False,
         "X": False,
         "Y": False,
-        "LT": 0,
-        "RT": 0,
-        "LB": False,
-        "RB": False,
-        "LS": False,
-        "RS": False,
-        "LX": 0,
-        "LY": 0,
-        "RX": 0,
-        "RY": 0,
-        "KILL": 0,
+        # "L1": False,
+        # "R1": False,
+        # "L2": False,
+        # "R2": False,
+        # "L3": False,
+        # "R3": False,
+        # "LX": 0,
+        # "LY": 0,
+        # "RX": 0,
+        # "RY": 0,
+        # "KILL": 0,
     }
     device = None
     raw = {}
 
     def __init__(self):
-        try:
-            self.device = InputDevice("/dev/input/event0")
-        except FileNotFoundError:
-            logger.error("cant open input device")
-            exit(1)
+        # try:
+        #     self.device = InputDevice("/dev/input/event0")
+        # except FileNotFoundError:
+        #     logger.error("cant open input device")
+        #     exit(1)
         logger.info("up")
 
     # dont do this here, display all the buttons in Display()
-    def __repr__(self):
-        return "LT: RT:%s" % (self.state["RT"],)
+    # def __repr__(self):
+    #     return "LT: RT:%s" % (self.state["RT"],)
 
-    def get(self, button):
-        return self.state.get(button, None)
+    def get(self, button, default=False):
+        return self.state.get(button, default)
 
     def update(self):
-        try:
-            for event in self.device.read():
-                self.receive_event(event)
-        except BlockingIOError:
-            pass
+        # print("\rtest")
+        pass
+        # try:
+        #     for event in self.device.read():
+        #         self.receive_event(event)
+        # except BlockingIOError:
+        #     pass
 
     def receive_event(self, event):
         self.raw[event.code] = event.value

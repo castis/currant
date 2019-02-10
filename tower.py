@@ -22,10 +22,7 @@ parser.add_argument(
 )
 parser.add_argument("-u", "--user", default="root", help="Valid SSH user name")
 parser.add_argument(
-    "-i",
-    "--identity",
-    default="~/.ssh/currant_ecdsa",
-    help="Path to an SSH key file",
+    "-i", "--identity", default="~/.ssh/currant_ecdsa", help="Path to an SSH key file"
 )
 parser.add_argument(
     "-l",
@@ -34,16 +31,10 @@ parser.add_argument(
     help="Local directory to watch and sync from",
 )
 parser.add_argument(
-    "-r",
-    "--remote-dir",
-    default="/opt/currant",
-    help="Remote directory to sync to",
+    "-r", "--remote-dir", default="/opt/currant", help="Remote directory to sync to"
 )
 parser.add_argument(
-    "-c",
-    "--configure",
-    action="store_true",
-    help="Run ansible setup and exit",
+    "-c", "--configure", action="store_true", help="Run ansible setup and exit"
 )
 
 args = parser.parse_args()
@@ -132,7 +123,7 @@ def sync_code_folder():
     try:
         sftp.put_dir(args.local_dir, args.remote_dir)
         ssh.exec_command(f'find {args.remote_dir} -type f -iname "*.pyc" -delete')
-        # ssh.exec_command("kill -SIGUSR1 $(ps aux | grep fly.p[y] | awk '{print $2}')")
+        ssh.exec_command("kill -SIGUSR1 $(ps aux | grep fly.p[y] | awk '{print $2}')")
         # ssh.exec_command("systemctl restart currant.service")
     except Exception as e:
         logger.error(e)

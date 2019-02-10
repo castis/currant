@@ -11,32 +11,6 @@ logger = logging.getLogger("vehicle")
 mpu9250 = sensors.MPU9250()
 
 
-class Throttle(object):
-    """
-    Maintains the last {window} throttle inputs.
-    Averages them to calculate throttle
-    """
-
-    window = 10
-    last = 0
-    value = 0
-
-    def __init__(self):
-        self.deque = collections.deque(range(1), self.window)
-
-    def tick(self, throttle_input):
-        self.value = throttle_input
-        # if the throttle is on and we let go
-        # add in a few high-negative numbers to bring the average down faster
-        # if throttle_input == 0 and self.value > 0:
-        #     self.deque.append(-100)
-        # else:
-        #     self.deque.append(throttle_input)
-
-        # self.value = sum(i for i in self.deque) / self.window
-        # self.value = max(0, min(self.value, 100))
-
-
 blank_mag = {"x": 0, "y": 0, "z": 0}
 
 
@@ -44,7 +18,6 @@ class Vehicle(object):
     # accel = None
     # gyro = None
     throttle = 0
-    cruise = 0
     # altitude = 0
 
     def __init__(self, motor_pins=[]):
@@ -54,7 +27,7 @@ class Vehicle(object):
         self.motors = [Motor(pin=pin) for pin in motor_pins]
 
         # one for each measurement we control
-        self.throttle = Throttle()
+        self.throttle = 0
 
         # # self.altitude = PID(p=1, i=0.1, d=0)
         self.pitch = PID(p=1, i=0.1, d=0)
@@ -87,17 +60,11 @@ class Vehicle(object):
 
         # self.altitude = self.hcsr04.altitude
 
+        # throttle_in = engine.input.get("RT")
         throttle_in = 0
-        if self.cruise > 0:
-            throttle_in = self.cruise
-        else:
-            throttle_in = engine.input.get("RT")
 
-        self.throttle.tick((throttle_in / 255) * 100)
-        self.apply_throttle(self.throttle.value)
-
-        if engine.input.get("RS"):
-            self.cruise = engine.input.get("RT")
+        # self.throttle.tick((throttle_in / 255) * 100)
+        self.apply_throttle(self.throttle)
 
         if throttle_in > 0:
             pitch_delta = self.pitch(self.accel["x"], engine.chronograph.delta)
