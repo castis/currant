@@ -2,7 +2,7 @@
 
 Python flight controller setup for a Raspberry Pi.
 
-<img src="https://gitlab.com/b1tzky/currant/raw/master/image.jpg">
+<img src="image.jpg">
 
 ## Hardware
 

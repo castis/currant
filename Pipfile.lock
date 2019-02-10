@@ -16,10 +16,10 @@
     "default": {
         "ansible": {
             "hashes": [
-                "sha256:6d855ead966c1a24a7d583ddcea8dd9e1f6edab3207390b647149351e113eb38"
+                "sha256:040cc936f959b947800ffaa5f940d2508aaa41f899efe56b47a7442c89689150"
             ],
             "index": "pypi",
-            "version": "==2.7.6"
+            "version": "==2.7.7"
         },
         "argh": {
             "hashes": [
@@ -336,10 +336,11 @@
         },
         "plotly": {
             "hashes": [
-                "sha256:3fd64a8dc3d6fcb5b1abe8f393319d333a94b312a1d470c30231a05b90f7fb28"
+                "sha256:3cfc53346fa5c32432f13b0c20c272f9cf48f9af9c15f8f77745fb602c12bd91",
+                "sha256:3d1574c790ad62c954ccf95b5a8d33a6e443a1992b35beb2e43402649be13b64"
             ],
             "index": "pypi",
-            "version": "==3.6.0"
+            "version": "==3.6.1"
         },
         "psutil": {
             "hashes": [
@@ -402,10 +403,10 @@
         },
         "python-dateutil": {
             "hashes": [
-                "sha256:063df5763652e21de43de7d9e00ccf239f953a832941e37be541614732cdfc93",
-                "sha256:88f9287c0174266bb0d8cedd395cfba9c58e87e5ad86b2ce58859bc11be3cf02"
+                "sha256:7e6584c74aeed623791615e26efd690f29817a27c73085b78e4bad02493df2fb",
+                "sha256:c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e"
             ],
-            "version": "==2.7.5"
+            "version": "==2.8.0"
         },
         "pytz": {
             "hashes": [
