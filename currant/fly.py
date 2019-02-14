@@ -7,7 +7,7 @@ import sys
 import time
 
 import psutil
-from utility.bluetoothctl import Bluetoothctl
+from utility import Bluetoothctl
 from engine import Chronograph, Input, Vehicle
 
 parser = argparse.ArgumentParser(description="Aviation!")

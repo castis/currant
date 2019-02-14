@@ -1,1 +1,0 @@
-kill -9 `ps -e | grep pytho[n] | awk '{print $1}'`

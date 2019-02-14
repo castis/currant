@@ -1,4 +1,0 @@
-find . -name \*.pyc -delete
-find . -name \*.py -delete
-find . -type d -name __pycache__ -delete
-find . -maxdepth 1 -type d -empty -delete

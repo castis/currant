@@ -3,6 +3,7 @@ import logging
 
 from .pid import *
 from .StoppableThread import StoppableThread
+from .bluetoothctl import Bluetoothctl
 
 try:
     import RPi.GPIO as GPIO
