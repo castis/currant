@@ -123,7 +123,7 @@ def sync_code_folder():
     try:
         sftp.put_dir(args.local_dir, args.remote_dir)
         ssh.exec_command(f'find {args.remote_dir} -type f -iname "*.pyc" -delete')
-        ssh.exec_command("kill -SIGUSR1 $(ps aux | grep fly.p[y] | awk '{print $2}')")
+        ssh.exec_command("kill -SIGUSR1 $(ps aux | grep [^]]fly.py | awk '{print $2}')")
         # ssh.exec_command("systemctl restart currant.service")
     except Exception as e:
         logger.error(e)

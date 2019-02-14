@@ -1,6 +1,5 @@
 import logging
-from time import time
-import asyncio
+from time import time, sleep
 
 
 logger = logging.getLogger("chronograph")
@@ -19,18 +18,18 @@ class Chronograph(object):
     delta = 0
     sleep = 0
 
-    def __init__(self):
+    def __init__(self, state):
         self.started = self.previous = time()
         logger.info("up")
 
     def __repr__(self):
         return "%02d:%02d:%02d" % self.since_start()
 
-    async def update(self):
+    def update(self, state):
         if self.cap > 0:
             self.sleep = 1.0 / self.cap - (time() - self.current)
             if self.sleep > 0.0:
-                await asyncio.sleep(self.sleep)
+                sleep(self.sleep)
         self.fps = 1.0 / (time() - self.current)
         self.previous = self.current
         self.current = time()

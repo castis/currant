@@ -2,7 +2,7 @@
 
 Python flight controller setup for a Raspberry Pi.
 
-<img src="image.jpg">
+![quadcopter](image.jpg 'apr 2018')
 
 ## Hardware
 
@@ -47,7 +47,7 @@ For `/etc/hosts`:
 Create and sync an SSH key (the keys I generated from macOS with OpenSSH didn't play with paramiko nicely, I had to generate the keys on the Pi and move them locally):
 
     ssh-keygen -t ecdsa -f ~/.ssh/currant_ecdsa -b 521 -N ''
-    ssh-copy-id -i ~/.ssh/id_ecdsa root@currant
+    ssh-copy-id -i ~/.ssh/currant_ecdsa root@currant
 
 For `~/.ssh/config`:
 
@@ -75,18 +75,21 @@ I've been using [`itermocil --here`](https://github.com/TomAnthony/itermocil) to
 
 One for git/local process work, one for running the main python process on the vehicle, and one for watching/syncing local code to it.
 
-### The local processes
+### The development machine
 
 From the base dir, `pipenv shell ./tower.py` will watch and sync `./currant/*` to `/opt/currant` on the vehicle.
 
-### The remote process
+### The vehicle
 
 A `preflight` script is included to `cd` into `/opt/currant` and then start a pipenv shell.
 
-The main process can be started with.
-
     ssh currant
     preflight
+
+The main process can be started with:
+
     ./fly.py
+
+Specify `--controller` to connect and configure a bluetooth controller.
 
 The first time `preflight` is run, it will install all the necessary dependencies. That takes about 30 minutes.

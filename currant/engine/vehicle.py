@@ -20,11 +20,11 @@ class Vehicle(object):
     throttle = 0
     # altitude = 0
 
-    def __init__(self, motor_pins=[]):
+    def __init__(self, state):
         # if len(motor_pins) != 4:
         #     raise Exception('incorrect number of motor pins given')
 
-        self.motors = [Motor(pin=pin) for pin in motor_pins]
+        self.motors = [Motor(pin=pin) for pin in state.motor_pins]
 
         # one for each measurement we control
         self.throttle = 0
@@ -50,7 +50,7 @@ class Vehicle(object):
 
         logger.info("up")
 
-    def update(self, engine):
+    def update(self, state):
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
 
@@ -66,15 +66,15 @@ class Vehicle(object):
         # self.throttle.tick((throttle_in / 255) * 100)
         self.apply_throttle(self.throttle)
 
-        if throttle_in > 0:
-            pitch_delta = self.pitch(self.accel["x"], engine.chronograph.delta)
-            self.apply_pitch(pitch_delta)
+        # if throttle_in > 0:
+        #     pitch_delta = self.pitch(self.accel["x"], engine.chronograph.delta)
+        #     self.apply_pitch(pitch_delta)
 
-            roll_delta = self.roll(self.accel["y"], engine.chronograph.delta)
-            self.apply_roll(roll_delta)
+        #     roll_delta = self.roll(self.accel["y"], engine.chronograph.delta)
+        #     self.apply_roll(roll_delta)
 
-            yaw_delta = self.yaw(self.accel["y"], engine.chronograph.delta)
-            self.apply_roll(yaw_delta)
+        #     yaw_delta = self.yaw(self.accel["y"], engine.chronograph.delta)
+        #     self.apply_roll(yaw_delta)
 
         for motor in self.motors:
             motor.tick()

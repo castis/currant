@@ -7,11 +7,12 @@ url = "https://pypi.python.org/simple"
 
 [packages]
 
-"smbus2" = "*"
-numpy = "*"
-"rpi.gpio" = "*"
 evdev = "*"
+numpy = "*"
+pexpect = "*"
 psutil = "*"
+"rpi.gpio" = "*"
+"smbus2" = "*"
 
 
 [dev-packages]
