@@ -58,13 +58,11 @@ class Bluetoothctl:
             out = self.get_output("devices")
         except Exception as e:
             logger.error(e)
-            return available_devices
         else:
             for line in out:
                 device = self.parse_device_info(line)
                 if device:
                     available_devices.append(device)
-
         return available_devices
 
     def get_paired_devices(self):
@@ -73,20 +71,16 @@ class Bluetoothctl:
             out = self.get_output("paired-devices")
         except Exception as e:
             logger.error(e)
-            return paired_devices
         else:
             for line in out:
                 device = self.parse_device_info(line)
                 if device:
                     paired_devices.append(device)
-
         return paired_devices
 
     def get_discoverable_devices(self):
-        """Filter paired devices out of available."""
         available = self.get_available_devices()
         paired = self.get_paired_devices()
-
         return [d for d in available if d not in paired]
 
     def get_device_info(self, mac_address):
