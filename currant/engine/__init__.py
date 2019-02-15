@@ -1,3 +1,4 @@
 from .chronograph import Chronograph
-from .input import Input
+from .display import Display
+from .controller import Controller
 from .vehicle import Vehicle

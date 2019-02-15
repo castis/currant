@@ -1,7 +1,7 @@
 # ultrasonic distance sensor
 
 import time
-import numpy
+# import numpy
 import logging
 
 from utility import StoppableThread

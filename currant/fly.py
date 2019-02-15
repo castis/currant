@@ -5,10 +5,11 @@ import os
 import signal
 import sys
 import time
+from functools import partial
 
 import psutil
+from engine import Chronograph, Display, Controller, Vehicle
 from utility import Bluetoothctl
-from engine import Chronograph, Input, Vehicle
 
 parser = argparse.ArgumentParser(description="Aviation!")
 
@@ -32,21 +33,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger()
-
-
-def restart(sig, frame):
-    logger.info("restarting")
-    try:
-        p = psutil.Process(os.getpid())
-        for handler in p.open_files() + p.connections():
-            os.close(handler.fd)
-    except Exception as e:
-        logging.error(e)
-
-    os.execl(sys.executable, sys.executable, *sys.argv)
-
-
-signal.signal(signal.SIGUSR1, restart)
 
 
 if args.controller:
@@ -97,24 +83,54 @@ if args.controller:
 
 
 class State(object):
+    running = True
     motor_pins = [19, 16, 26, 20]
+    debug = args.debug
 
 
 state = State()
 chronograph = Chronograph(state)
-# input = Input(state)
+controller = Controller(state)
 vehicle = Vehicle(state)
+display = Display(state)
 
+def restart(display, sig, frame):
+    if display:
+        display.down()
+    logger.info("restarting...")
+
+    try:
+        p = psutil.Process(os.getpid())
+        for handler in p.open_files() + p.connections():
+            os.close(handler.fd)
+    except Exception as e:
+        logging.error(e)
+
+    os.execl(sys.executable, sys.executable, *sys.argv)
+
+
+signal.signal(signal.SIGUSR1, partial(restart, display))
+
+
+stored_exception = None
 try:
-    while True:
-        # input.update(state)
+    while state.running:
+        controller.update(state)
         vehicle.update(state)
         chronograph.update(state)
+        display.update(state)
 
-except (Exception, KeyboardInterrupt) as e:
-    logger.info("quitting")
+except Exception as e:
+    stored_exception = e
+
+except KeyboardInterrupt:
+    pass
 
 finally:
+    display.down()
     vehicle.down()
-    # input.down()
+    controller.down()
     chronograph.down()
+
+    if stored_exception:
+        logger.error(stored_exception)

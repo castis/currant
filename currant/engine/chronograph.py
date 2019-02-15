@@ -11,29 +11,28 @@ def pluralize(word, n):
 
 
 class Chronograph(object):
-    cap = 1
-    fps = 0
-    current = 0
-    previous = 0
-    delta = 0
-    sleep = 0
+    class State:
+        current = time()
+        cap = 30
+        fps = 0
+        delta = 0
 
     def __init__(self, state):
-        self.started = self.previous = time()
+        self.started = time()
         logger.info("up")
+        state.chronograph = self.State
 
     def __repr__(self):
         return "%02d:%02d:%02d" % self.since_start()
 
     def update(self, state):
-        if self.cap > 0:
-            self.sleep = 1.0 / self.cap - (time() - self.current)
-            if self.sleep > 0.0:
-                sleep(self.sleep)
-        self.fps = 1.0 / (time() - self.current)
-        self.previous = self.current
-        self.current = time()
-        self.delta = self.current - self.previous
+        duration = 1.0 / self.State.cap - (time() - self.State.current)
+        if duration > 0.0:
+            sleep(duration)
+        self.State.fps = 1.0 / (time() - self.State.current)
+        previous = self.State.current
+        self.State.current = time()
+        self.State.delta = self.State.current - previous
 
     def since_start(self):
         seconds = int(time() - self.started)

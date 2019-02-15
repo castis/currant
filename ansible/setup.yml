@@ -32,6 +32,24 @@
       state: directory
       mode: 0755
 
+  - copy:
+      src: ./app/
+      dest: /opt/currant
+      owner: root
+      group: root
+      mode: 0644
+
+  - command: pipenv install
+    args:
+      chdir: /opt/currant
+      creates: /opt/currant/Pipfile.lock
+    tags: [install]
+
+  - file:
+      dest: /opt/currant/fly.py
+      mode: a+x
+    tags: [install]
+
   # one day we maybe we'll deploy this way
   # - git:
   #     repo: git@gitlab.com:b1tzky/currant.git

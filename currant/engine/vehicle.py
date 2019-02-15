@@ -27,9 +27,9 @@ class Vehicle(object):
         self.motors = [Motor(pin=pin) for pin in state.motor_pins]
 
         # one for each measurement we control
-        self.throttle = 0
+        # self.throttle = 0
 
-        # # self.altitude = PID(p=1, i=0.1, d=0)
+        self.throttle = PID(p=1, i=0.1, d=0)
         self.pitch = PID(p=1, i=0.1, d=0)
         self.roll = PID(p=1, i=0.1, d=0)
         self.yaw = PID(p=1, i=0.1, d=0)
@@ -39,12 +39,9 @@ class Vehicle(object):
 
         self.accel = mpu9250.readAccel()
         self.gyro = mpu9250.readGyro()
-
         magnet = mpu9250.readMagnet()
-        # only like every 3rd read or so comes back with a reading. sometimes
-        # they come back blank. could possibly move this check backwards into
-        # the magnetometer code or have it pass in a state that gets decorated
-        # inside the magnetometer code
+
+        # only like every 3rd mag read or so comes back with data
         if magnet != blank_mag:
             self.magnet = magnet
 
@@ -61,19 +58,19 @@ class Vehicle(object):
         # self.altitude = self.hcsr04.altitude
 
         # throttle_in = engine.input.get("RT")
-        throttle_in = 0
+        # throttle_in = 0
 
         # self.throttle.tick((throttle_in / 255) * 100)
-        self.apply_throttle(self.throttle)
+        # self.apply_throttle(self.throttle)
 
         # if throttle_in > 0:
-        #     pitch_delta = self.pitch(self.accel["x"], engine.chronograph.delta)
+        #     pitch_delta = self.pitch(self.accel["x"], state.chronograph.delta)
         #     self.apply_pitch(pitch_delta)
 
-        #     roll_delta = self.roll(self.accel["y"], engine.chronograph.delta)
+        #     roll_delta = self.roll(self.accel["y"], state.chronograph.delta)
         #     self.apply_roll(roll_delta)
 
-        #     yaw_delta = self.yaw(self.accel["y"], engine.chronograph.delta)
+        #     yaw_delta = self.yaw(self.accel["y"], state.chronograph.delta)
         #     self.apply_roll(yaw_delta)
 
         for motor in self.motors:
