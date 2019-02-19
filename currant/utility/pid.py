@@ -13,7 +13,7 @@ class PID(object):
         self.error = None
 
     def __unicode__(self):
-        return f"PID controller"
+        return "PID controller"
 
     def __format__(self, data):
         return self.__unicode__()

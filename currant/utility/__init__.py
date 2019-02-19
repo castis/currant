@@ -2,7 +2,6 @@ import logging
 
 
 from .pid import *
-from .StoppableThread import StoppableThread
 from .bluetoothctl import Bluetoothctl
 
 try:

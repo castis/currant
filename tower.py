@@ -158,7 +158,10 @@ except Exception as e:
 
 finally:
     observer.stop()
-    sftp.close()
+    try:
+        sftp.close()
+    except EOFError as e:
+        pass # vehicle was probably unplugged
     ssh.close()
 
 logger.info("Aviation!")

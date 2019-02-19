@@ -84,7 +84,6 @@ if args.controller:
 
 class State(object):
     running = True
-    motor_pins = [19, 16, 26, 20]
     debug = args.debug
 
 
@@ -93,6 +92,7 @@ chronograph = Chronograph(state)
 controller = Controller(state)
 vehicle = Vehicle(state)
 display = Display(state)
+
 
 def restart(display, sig, frame):
     if display:
@@ -108,7 +108,6 @@ def restart(display, sig, frame):
 
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-
 signal.signal(signal.SIGUSR1, partial(restart, display))
 
 
@@ -121,7 +120,10 @@ try:
         display.update(state)
 
 except Exception as e:
-    stored_exception = e
+    if display:
+        stored_exception = e
+    else:
+        raise
 
 except KeyboardInterrupt:
     pass

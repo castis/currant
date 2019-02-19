@@ -8,108 +8,123 @@ from utility import PID, GPIO
 
 
 logger = logging.getLogger("vehicle")
+
+
 mpu9250 = sensors.MPU9250()
+class Magnet:
+    blank_read = {"x": 0, "y": 0, "z": 0}
+    initial_read = blank_read
+    last_good_read = blank_read
+
+    def __init__(self):
+        self.initial_read = mpu9250.readMagnet()
+        # i = 0
+        # while self.initial_read == self.blank_read or i < 100:
+        #     self.initial_read = mpu9250.readMagnet()
+        #     i = i+1
+
+    def read(self):
+        reading = mpu9250.readMagnet()
+        # only like every 3rd mag read or so comes back with data
+        if reading == self.blank_read:
+            return self.last_good_read
+        else:
+            self.last_good_read = reading
+            return reading
 
 
-blank_mag = {"x": 0, "y": 0, "z": 0}
+hcsr04 = sensors.HCSR04()
+class Altimeter(object):
+    def read(self):
+        # sensor is mounted 3.57cm from the ground
+        return hcsr04.distance() - 3.57
 
+
+altimeter = Altimeter()
+magnet = Magnet()
 
 class Vehicle(object):
-    # accel = None
-    # gyro = None
-    throttle = 0
-    # altitude = 0
+
+    class State:
+        motor_pins = [19, 16, 26, 20]
+        motors = []
+        temperature = mpu9250.readTemperature()
+        accelerometer = mpu9250.readAccel()
+        gyro = mpu9250.readGyro()
+        magnet = magnet.read()
+        altitude = altimeter.read()
+        throttle = 0
 
     def __init__(self, state):
-        # if len(motor_pins) != 4:
-        #     raise Exception('incorrect number of motor pins given')
+        state.vehicle =  self.State
+        state.vehicle.motors = [Motor(pin=pin) for pin in state.vehicle.motor_pins]
 
-        self.motors = [Motor(pin=pin) for pin in state.motor_pins]
+        self.throttle_input = 0
 
-        # one for each measurement we control
-        # self.throttle = 0
-
-        self.throttle = PID(p=1, i=0.1, d=0)
         self.pitch = PID(p=1, i=0.1, d=0)
         self.roll = PID(p=1, i=0.1, d=0)
         self.yaw = PID(p=1, i=0.1, d=0)
 
-        # altimeter 1
-        # self.hcsr04 = sensors.HCSR04()
-
-        self.accel = mpu9250.readAccel()
-        self.gyro = mpu9250.readGyro()
-        magnet = mpu9250.readMagnet()
-
-        # only like every 3rd mag read or so comes back with data
-        if magnet != blank_mag:
-            self.magnet = magnet
-
         logger.info("up")
 
     def update(self, state):
-        self.accel = mpu9250.readAccel()
-        self.gyro = mpu9250.readGyro()
+        state.vehicle.accelerometer = mpu9250.readAccel()
+        state.vehicle.gyro = mpu9250.readGyro()
+        state.vehicle.magnet = magnet.read()
+        state.vehicle.altitude = altimeter.read()
+        state.vehicle.temperature = mpu9250.readTemperature()
 
-        magnet = mpu9250.readMagnet()
-        if magnet != blank_mag:
-            self.magnet = magnet
+        self.State.throttle = max(0, min(state.controller.lsy / 327, 100))
+        self.apply_throttle(self.State.throttle)
 
-        # self.altitude = self.hcsr04.altitude
+        pitch_delta = self.pitch(
+            state.vehicle.accelerometer['x'],
+            state.chronograph.delta
+        )
+        self.apply_pitch(state.vehicle.motors, pitch_delta)
 
-        # throttle_in = engine.input.get("RT")
-        # throttle_in = 0
+        roll_delta = self.roll(
+            state.vehicle.accelerometer['y'],
+            state.chronograph.delta
+        )
+        self.apply_roll(state.vehicle.motors, roll_delta)
 
-        # self.throttle.tick((throttle_in / 255) * 100)
-        # self.apply_throttle(self.throttle)
+        yaw_delta = self.yaw(
+            state.vehicle.accelerometer['y'],
+            state.chronograph.delta
+        )
+        self.apply_roll(state.vehicle.motors, yaw_delta)
 
-        # if throttle_in > 0:
-        #     pitch_delta = self.pitch(self.accel["x"], state.chronograph.delta)
-        #     self.apply_pitch(pitch_delta)
-
-        #     roll_delta = self.roll(self.accel["y"], state.chronograph.delta)
-        #     self.apply_roll(roll_delta)
-
-        #     yaw_delta = self.yaw(self.accel["y"], state.chronograph.delta)
-        #     self.apply_roll(yaw_delta)
-
-        for motor in self.motors:
+        for motor in state.vehicle.motors:
             motor.tick()
 
     def apply_throttle(self, throttle):
-        for motor in self.motors:
+        for motor in self.State.motors:
             motor.throttle = throttle
 
-    def apply_pitch(self, delta):
-        # pass
-        self.motors[0].throttle -= delta * 100
-        self.motors[1].throttle -= delta * 100
-        self.motors[2].throttle += delta * 100
-        self.motors[3].throttle += delta * 100
+    def apply_pitch(self, motors, delta):
+        motors[0].throttle -= delta * 100
+        motors[1].throttle -= delta * 100
+        motors[2].throttle += delta * 100
+        motors[3].throttle += delta * 100
 
-    def apply_roll(self, delta):
-        # pass
-        self.motors[0].throttle -= delta * 100
-        self.motors[2].throttle -= delta * 100
-        self.motors[1].throttle += delta * 100
-        self.motors[3].throttle += delta * 100
+    def apply_roll(self, motors, delta):
+        motors[0].throttle -= delta * 100
+        motors[2].throttle -= delta * 100
+        motors[1].throttle += delta * 100
+        motors[3].throttle += delta * 100
 
-    def apply_yaw(self, delta):
-        # pass
-        self.motors[0].throttle -= delta * 100
-        self.motors[3].throttle -= delta * 100
-        self.motors[1].throttle += delta * 100
-        self.motors[2].throttle += delta * 100
+    def apply_yaw(self, motors, delta):
+        motors[0].throttle -= delta * 100
+        motors[3].throttle -= delta * 100
+        motors[1].throttle += delta * 100
+        motors[2].throttle += delta * 100
 
     def down(self):
         self.apply_throttle(0)
-        for motor in self.motors:
+        for motor in self.State.motors:
             motor.tick()
-
-        # self.hcsr04.down()
-
         GPIO.cleanup()
-
         logger.info("down")
 
 

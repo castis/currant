@@ -9,6 +9,7 @@ logger = logging.getLogger("controller")
 
 
 class Controller(object):
+    name = "/dev/input/event0"
     device = None
     raw = {}
 
@@ -40,11 +41,10 @@ class Controller(object):
 
     def __init__(self, state):
         try:
-            name = "/dev/input/event0"
-            self.device = InputDevice(name)
+            self.device = InputDevice(self.name)
             logger.info("up")
         except FileNotFoundError:
-            logger.error(f"cannot open {name}")
+            logger.error(f"cannot open {self.name}")
         state.controller = self.State
 
     # dont do this here, display all the buttons in Display()

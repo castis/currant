@@ -11,7 +11,7 @@ class Board:
 
 
 class GPIO:
-    # left to implement
+    # constants left to define
     # GPIO.SPI, GPIO.I2C, GPIO.HARD_PWM, GPIO.SERIAL, GPIO.UNKNOWN
 
     # GPIO modes
