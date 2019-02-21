@@ -5,7 +5,8 @@
   - hostname:
       name: "{{ inventory_hostname }}"
 
-  - lineinfile:
+  - name: disable root login with password
+    lineinfile:
       path: /etc/ssh/sshd_config
       regexp: '^#?(PermitRootLogin)'
       line: '\1 prohibit-password'
@@ -17,7 +18,7 @@
       remove: yes
 
   - apt:
-      name: ['vim', 'git', 'python3-smbus', 'python3-dev', 'python3-pip', 'python3-setuptools', 'dnsmasq', 'hostapd', 'bluetooth', 'libbluetooth-dev']
+      name: ['vim', 'python3-smbus', 'python3-dev', 'python3-pip', 'python3-setuptools', 'dnsmasq', 'hostapd', 'bluetooth', 'libbluetooth-dev']
       state: present
     tags: [packages, apt]
 
@@ -27,17 +28,13 @@
   #     executable: pip3
   #   tags: [pip]
 
-  - file:
-      path: /opt/currant
-      state: directory
-      mode: 0755
-
   - copy:
       src: ./app/
       dest: /opt/currant
       owner: root
       group: root
       mode: 0644
+    tags: [install]
 
   - command: pipenv install
     args:
@@ -49,17 +46,6 @@
       dest: /opt/currant/fly.py
       mode: a+x
     tags: [install]
-
-  # one day we maybe we'll deploy this way
-  # - git:
-  #     repo: git@gitlab.com:b1tzky/currant.git
-  #     dest: /tmp/currant
-  #     depth: 1
-
-  # - copy:
-  #     src: /tmp/currant/currant
-  #     dest: /opt/currant
-  #     remote_src: yes
 
   # - name: configure systemd service
   #   copy:

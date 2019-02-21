@@ -37,6 +37,13 @@ class Bluetoothctl:
         except Exception as e:
             logger.error(e)
 
+    def stop_scan(self):
+        """Stop bluetooth scanning process."""
+        try:
+            self.send("scan off")
+        except Exception as e:
+            logger.error(e)
+
     def make_discoverable(self):
         """Make device discoverable."""
         try:

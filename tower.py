@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# kill $(ps aux | grep tower.p[y] | awk '{print $2}')
+# kill $(ps aux | grep [^]]tower.py | awk '{print $2}')
 
 import sys
 import os
@@ -161,7 +161,8 @@ finally:
     try:
         sftp.close()
     except EOFError as e:
-        pass # vehicle was probably unplugged
+        # logger.info("Error closing sftp client, vehicle off?")
+        pass
     ssh.close()
 
 logger.info("Aviation!")

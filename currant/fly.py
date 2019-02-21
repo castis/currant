@@ -44,21 +44,21 @@ if args.controller:
         btctl.start_scan()
         time.sleep(seconds)
 
-        available = btctl.get_available_devices()
-        paired = btctl.get_paired_devices()
         device = None
-
         while device == None:
-            print("select a device:")
+            available = btctl.get_available_devices()
+            print("select a device:\n0. reload list")
             for i, d in enumerate(available):
                 print("%s. %s" % (i + 1, d["name"]))
             try:
-                selected = int(input("number: ")) - 1
-                device = available[selected]
+                selection = int(input("number: ")) - 1
+                device = available[selection]
             except (ValueError, IndexError) as e:
-                logger.error("bad choice")
+                logger.error("no device selected, reloading list")
 
-        if not device in paired:
+        btctl.stop_scan()
+
+        if not device in btctl.get_paired_devices():
             logger.info("pairing %s" % device["name"])
             if not btctl.pair(device["mac_address"]):
                 logger.error("could not pair %s" % device["name"])
@@ -120,6 +120,9 @@ try:
         display.update(state)
 
 except Exception as e:
+    # we dont want to throw an exception
+    # while the display is running as
+    # it completely screws up the output
     if display:
         stored_exception = e
     else:
@@ -135,4 +138,4 @@ finally:
     chronograph.down()
 
     if stored_exception:
-        logger.error(stored_exception)
+        raise stored_exception
