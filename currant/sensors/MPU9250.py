@@ -225,9 +225,6 @@ class MPU9250:
     #  @retval y : y-magneto data
     #  @retval z : Z-magneto data
     def readMagnet(self):
-        x = 0
-        y = 0
-        z = 0
 
         # check data ready
         drdy = bus.read_byte_data(AK8963_SLAVE_ADDRESS, AK8963_ST1)
@@ -241,15 +238,11 @@ class MPU9250:
                 y = self.dataConv(data[2], data[3])
                 z = self.dataConv(data[4], data[5])
 
-                x = round(x * self.mres * self.magXcoef, 3)
-                y = round(y * self.mres * self.magYcoef, 3)
-                z = round(z * self.mres * self.magZcoef, 3)
-
-        return {
-            "x": x,
-            "y": y,
-            "z": z
-        }
+                return {
+                    "x": round(x * self.mres * self.magXcoef, 3),
+                    "y": round(y * self.mres * self.magYcoef, 3),
+                    "z": round(z * self.mres * self.magZcoef, 3),
+                }
 
     # Read temperature
     #  @param [out] temperature temperature(degrees C)

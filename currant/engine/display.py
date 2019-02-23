@@ -12,14 +12,16 @@ logger = logging.getLogger("display")
 class Cluster:
     def __init__(self, x, y, display, name):
         self.window = curses.newwin(0, 0, x, y)
-        self.display = display
-        self.display_color = curses.color_pair(1)
         self.name = name
-        self.name_color = curses.color_pair(2)
+        self.name_color = curses.color_pair(1)
+        self.display = display
+        self.display_color = curses.color_pair(2)
 
     def update(self, *args, **kwargs):
-        self.window.addstr(0, 0, f'{self.name}:', self.display_color)
-        self.window.addstr(1, 0, self.display.format(*args, **kwargs), self.name_color)
+        self.window.addstr(0, 0, f"{self.name}:", self.name_color)
+        self.window.addstr(
+            1, 0, self.display.format(*args, **kwargs), self.display_color
+        )
         self.window.noutrefresh()
 
 
@@ -60,59 +62,50 @@ class Display(object):
         curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
-        self.engine = Cluster(0, 0,
-            (" time: {time:.2f}\n"
-             " cap: {cap:.1f}\n"
-             " fps: {fps:.1f}\n"
-             " memory used: {mem:.7f} MiB\n"),
-            name="engine"
-        )
+        self.engine = Cluster(0, 0, (
+            " time: {time:.2f}\n"
+            " cap: {cap:.1f}\n"
+            " fps: {fps:.1f}\n"
+            " memory used: {mem:.7f} MiB\n"
+        ), name="engine")
 
-        self.controller = Cluster(0, 30,
-            (" throttle: {throttle}\n"
-             " strafe: {strafe}\n"
-             " forward: {forward}\n"
-             " spin: {spin}\n"),
-            name="controller"
-        )
-
+        self.controller = Cluster(0, 30, (
+            " throttle: {throttle}\n"
+            " strafe: {strafe}\n"
+            " forward: {forward}\n"
+            " spin: {spin}\n"
+        ), name="controller")
 
         row_2 = 6
-        self.vehicle = Cluster(row_2, 0,
-            (" altitude: {altitude:>6.2f}cm\n"
-             " throttle: {throttle:>6.2f}\n"
-             " temperature: {temperature:>6.2f}\n"),
-            name="vehicle"
-        )
+        self.vehicle = Cluster(row_2, 0, (
+            " altitude: {altitude:>6.2f}cm\n"
+            " throttle: {throttle:>6.2f}\n"
+            " temperature: {temperature:>6.2f}\n"
+        ), name="vehicle")
 
-        self.motors = Cluster(row_2, 20,
-            (" {0: 2d}  {1: 2d}\n"
-             " {0: 2d}  {1: 2d}\n"),
-            name="motors"
-        )
+        self.motors = Cluster(row_2, 22, (
+            " {0: 2d}  {1: 2d}\n"
+            " {0: 2d}  {1: 2d}\n"
+        ), name="motors")
 
+        row_3 = 11
+        self.accelerometer = Cluster(row_3, 0, (
+            " x: {x:>7.3f}\n"
+            " y: {y:>7.3f}\n"
+            " z: {z:>7.3f}\n"
+        ), name="accelerometer")
 
-        row_3 = 10
-        self.accelerometer = Cluster(row_3, 0,
-            (" x: {x:>7.3f}\n"
-             " y: {y:>7.3f}\n"
-             " z: {z:>7.3f}\n"),
-            name="accelerometer"
-        )
+        self.gyro = Cluster(row_3, 16, (
+            " x: {x:>7.3f}\n"
+            " y: {y:>7.3f}\n"
+            " z: {z:>7.3f}\n"
+        ), name="gyro")
 
-        self.gyro = Cluster(row_3, 16,
-            (" x: {x:>7.3f}\n"
-             " y: {y:>7.3f}\n"
-             " z: {z:>7.3f}\n"),
-            name="gyro"
-        )
-
-        self.magnet = Cluster(row_3, 32,
-            (" x: {x:>7.3f}\n"
-             " y: {y:>7.3f}\n"
-             " z: {z:>7.3f}\n"),
-            name="magnet"
-        )
+        self.magnet = Cluster(row_3, 32, (
+            " x: {x:>7.3f}\n"
+            " y: {y:>7.3f}\n"
+            " z: {z:>7.3f}\n"
+        ), name="magnet")
 
     def update(self, state):
         if not self.screen:
@@ -138,7 +131,7 @@ class Display(object):
         self.vehicle.update(
             altitude=state.vehicle.altitude,
             throttle=state.vehicle.throttle,
-            temperature=state.vehicle.temperature
+            temperature=state.vehicle.temperature,
         )
 
         self.motors.update(

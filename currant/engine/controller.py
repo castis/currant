@@ -1,7 +1,7 @@
 import logging
 from time import sleep
 
-from utility.bluetoothctl import Bluetoothctl
+from utility import Bluetoothctl
 from evdev import InputDevice, categorize, ecodes
 
 
@@ -9,8 +9,8 @@ logger = logging.getLogger("controller")
 
 
 class Controller(object):
-    name = "/dev/input/event0"
-    device = None
+    device_file = "/dev/input/event0"
+    input_device = None
     raw = {}
 
     class State:
@@ -39,25 +39,68 @@ class Controller(object):
         def get(*args, **kwargs):
             return getattr(*args, **kwargs)
 
-    def __init__(self, state):
+    def __init__(self, state, setup_bluetooth=False):
+        if setup_bluetooth:
+            self.setup_bluetooth()
+
         try:
-            self.device = InputDevice(self.name)
+            self.input_device = InputDevice(self.device_file)
             logger.info("up")
         except FileNotFoundError:
-            logger.error(f"cannot open {self.name}")
+            logger.error(f"cannot open {self.device_file}, continuing on")
+            sleep(2)
         state.controller = self.State
 
-    # dont do this here, display all the buttons in Display()
-    # def __repr__(self):
-    #     return "LT: RT:%s" % (self.state["RT"],)
+    def setup_bluetooth(self):
+        btctl = Bluetoothctl()
+        seconds = 5
+
+        logger.info(f"scanning for {seconds} seconds")
+        btctl.start_scan()
+        sleep(seconds)
+
+        device = None
+        while device == None:
+            available = btctl.get_available_devices()
+            print("select a device:\n0. reload list")
+            for i, d in enumerate(available):
+                print("%s. %s" % (i + 1, d["name"]))
+            try:
+                selection = int(input("number: ")) - 1
+                device = available[selection]
+            except (ValueError, IndexError) as e:
+                logger.error("no device selected, reloading list")
+
+        btctl.stop_scan()
+
+        if not device in btctl.get_paired_devices():
+            logger.info("pairing %s" % device["name"])
+            if btctl.pair(device["mac_address"]):
+                logger.info("paired")
+                # auto-connect when seen in the future
+                if btctl.trust(device["mac_address"]):
+                    logger.info("and trusted")
+                else:
+                    logger.error("but could not trust %s" % device["name"])
+            else:
+                logger.error("could not pair")
+        else:
+            logger.info("already paired with %s" % device["name"])
+
+        if device in btctl.get_paired_devices():
+            logger.info("connecting to %s" % device["name"])
+            if btctl.connect(device["mac_address"]):
+                logger.info("connected")
+            else:
+                logger.error("could not connect")
 
     def get(self, button, default=False):
         return getattr(self.State, button, default)
 
     def update(self, state):
-        if self.device:
+        if self.input_device:
             try:
-                for event in self.device.read():
+                for event in self.input_device.read():
                     self.receive_event(event, state)
             except BlockingIOError:
                 pass
@@ -131,7 +174,7 @@ class Controller(object):
                 state.running = False
 
     def down(self):
-        if self.device:
-            self.device.close()
-            self.device = None
+        if self.input_device:
+            self.input_device.close()
+            self.input_device = None
         logger.info("down")

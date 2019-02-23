@@ -17,24 +17,19 @@ from watchdog.events import FileSystemEventHandler
 
 parser = ArgumentParser(description="Tower, ground control utility")
 
+parser.add_argument("--hostname", default="currant", help="Hostname of the vehicle")
+parser.add_argument("--user", default="root", help="User name on the vehicle")
 parser.add_argument(
-    "host", nargs="?", default="currant", help="Hostname of the vehicle"
-)
-parser.add_argument("-u", "--user", default="root", help="Valid SSH user name")
-parser.add_argument(
-    "-i", "--identity", default="~/.ssh/currant_ecdsa", help="Path to an SSH key file"
+    "--identity", default="~/.ssh/currant_ecdsa", help="Path to the SSH identity file"
 )
 parser.add_argument(
-    "-l",
-    "--local-dir",
-    default="./currant",
-    help="Local directory to watch and sync from",
+    "--local-dir", default="./currant", help="Local directory to watch and sync from"
 )
 parser.add_argument(
-    "-r", "--remote-dir", default="/opt/currant", help="Remote directory to sync to"
+    "--remote-dir", default="/opt/currant", help="Remote directory to sync to"
 )
 parser.add_argument(
-    "-c", "--configure", action="store_true", help="Run ansible setup and exit"
+    "-c", "--configure", action="store_true", help="Run ansible configuration and exit"
 )
 
 args = parser.parse_args()
@@ -46,26 +41,22 @@ logger = logging.getLogger()
 
 
 if args.configure:
-    # run ansible playbooks
     logger.info("here is where we run ansible playbooks")
     exit(0)
 
 
 try:
     key_file = os.path.expanduser(args.identity)
-    ssh_kwargs = {
-        "username": args.user,
-        "pkey": ECDSAKey.from_private_key_file(key_file),
-    }
+    private_key = ECDSAKey.from_private_key_file(key_file)
 except FileNotFoundError as e:
     logger.error(f"{args.identity} not found")
     exit(1)
 
+ssh = SSHClient()
+ssh.load_system_host_keys()
 
 try:
-    ssh = SSHClient()
-    ssh.load_system_host_keys()
-    ssh.connect(args.host, **ssh_kwargs)
+    ssh.connect(args.hostname, username=args.user, pkey=private_key)
 except AuthenticationException as e:
     logger.error("Authentication error")
     raise
@@ -75,6 +66,8 @@ except socket.timeout:
 except socket.error:
     logger.error("Socket error")
     raise
+finally:
+    logger.info("Connected")
 
 
 class SFTPClient(SFTPClient):
@@ -133,18 +126,18 @@ observer = Observer()
 observer.schedule(FSEventHandler(), ".", recursive=True)
 
 try:
-    logger.info("Watching for changes")
-    observer.start()
-
     date = strftime("%m%d%H%M%Y.%S")
-    logger.info(f"Set vehicle clock to {date}")
     ssh.exec_command(f"date {date}")
+    logger.info(f"Set vehicle clock to {date}")
 
     sync_code_folder()
 
+    observer.start()
+    logger.info("Watching for changes")
+
     # if args.getlogs:
     #     logger.info('Fetching debug logs')
-    #     os.system(f'rsync -a {args.host}:{args.remote_dir}/logs ./')
+    #     os.system(f'rsync -a {args.hostname}:{args.remote_dir}/logs ./')
     #     ssh.exec_command(f'find {args.remote_dir}/logs -type f -delete')
 
     while True:
@@ -152,9 +145,6 @@ try:
 
 except KeyboardInterrupt:
     logger.info("Caught ^C, quitting")
-
-except Exception as e:
-    logger.error(e)
 
 finally:
     observer.stop()

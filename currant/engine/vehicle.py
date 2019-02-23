@@ -12,31 +12,24 @@ logger = logging.getLogger("vehicle")
 
 mpu9250 = sensors.MPU9250()
 class Magnet:
-    blank_read = {"x": 0, "y": 0, "z": 0}
-    initial_read = blank_read
-    last_good_read = blank_read
+    initial_read = {"x": 0, "y": 0, "z": 0}
+    last_good_read = {"x": 0, "y": 0, "z": 0}
 
     def __init__(self):
-        self.initial_read = mpu9250.readMagnet()
-        # i = 0
-        # while self.initial_read == self.blank_read or i < 100:
-        #     self.initial_read = mpu9250.readMagnet()
-        #     i = i+1
+        self.initial_read = self.read()
 
     def read(self):
         reading = mpu9250.readMagnet()
-        # only like every 3rd mag read or so comes back with data
-        if reading == self.blank_read:
-            return self.last_good_read
-        else:
+        if reading:
             self.last_good_read = reading
-            return reading
+        return self.last_good_read
 
 
 hcsr04 = sensors.HCSR04()
 class Altimeter(object):
     def read(self):
-        # sensor is mounted 3.57cm from the ground
+        # front of sensor is mounted 3.57cm
+        # from bottom of vehicle
         return hcsr04.distance() - 3.57
 
 

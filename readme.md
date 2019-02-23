@@ -82,6 +82,8 @@ I open three terminal instances with [`itermocil --here`](https://github.com/Tom
 - One for running `pipenv shell ./tower.py`, which will watch and sync `./currant/*` to `/opt/currant` on the vehicle.
 - One for running `ssh currant`, and once inside the vehicle, running `preflight` and then `./fly.py`.
 
+<!-- ![terminal](./assets/terminal.png) -->
+
 `preflight` is `./ansible/files/preflight`
 
 Use `./fly.py --controller` to configure a bluetooth controller.

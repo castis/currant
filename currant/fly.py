@@ -17,11 +17,10 @@ parser.add_argument(
     "-d", "--debug", action="store_true", dest="debug", help="Sets debug mode"
 )
 parser.add_argument(
-    "-c",
-    "--controller",
+    "--setup-bt",
     action="store_true",
-    dest="controller",
-    help="Configure controller and exit",
+    dest="setup_bluetooth",
+    help="Setup bluetooth controller",
 )
 
 args = parser.parse_args()
@@ -35,53 +34,6 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 
-if args.controller:
-    try:
-        btctl = Bluetoothctl()
-        seconds = 10
-
-        logger.info(f"scanning for {seconds} seconds")
-        btctl.start_scan()
-        time.sleep(seconds)
-
-        device = None
-        while device == None:
-            available = btctl.get_available_devices()
-            print("select a device:\n0. reload list")
-            for i, d in enumerate(available):
-                print("%s. %s" % (i + 1, d["name"]))
-            try:
-                selection = int(input("number: ")) - 1
-                device = available[selection]
-            except (ValueError, IndexError) as e:
-                logger.error("no device selected, reloading list")
-
-        btctl.stop_scan()
-
-        if not device in btctl.get_paired_devices():
-            logger.info("pairing %s" % device["name"])
-            if not btctl.pair(device["mac_address"]):
-                logger.error("could not pair %s" % device["name"])
-                exit(1)
-            logger.info("paired with %s" % device["name"])
-
-            if not btctl.trust(device["mac_address"]):
-                logger.error("could not trust %s" % device["name"])
-            else:
-                logger.info("trusted %s" % device["name"])
-
-        logger.info("connecting to %s" % device["name"])
-        if btctl.connect(device["mac_address"]):
-            logger.info("connected")
-        else:
-            logger.error("could not connect")
-
-    except KeyboardInterrupt as e:
-        logger.info("quitting")
-
-    exit(0)
-
-
 class State(object):
     running = True
     debug = args.debug
@@ -89,11 +41,11 @@ class State(object):
 
 state = State()
 chronograph = Chronograph(state)
-controller = Controller(state)
+controller = Controller(state, setup_bluetooth=args.setup_bluetooth)
 vehicle = Vehicle(state)
 display = Display(state)
 
-
+# todo: pass in state instead of display and refuse to restart if altitude > 0
 def restart(display, sig, frame):
     if display:
         display.down()
@@ -121,8 +73,8 @@ try:
 
 except Exception as e:
     # we dont want to throw an exception
-    # while the display is running as
-    # it completely screws up the output
+    # while the display is running because
+    # it completely screws up the terminal
     if display:
         stored_exception = e
     else:
