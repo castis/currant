@@ -11,8 +11,9 @@
 #  FaBo <info@fabo.io>
 
 
-from smbus2 import SMBus
 import time
+
+from smbus2 import SMBus
 
 # MPU9250 Default I2C slave address
 SLAVE_ADDRESS = 0x68
@@ -85,6 +86,17 @@ AK8963_BIT_16 = 0x01  # 16bit
 bus = SMBus(1)
 
 # MPU9250 I2C Control class
+
+# Data Convert
+# @param [in] self The object pointer.
+# @param [in] data1 LSB
+# @param [in] data2 MSB
+# @retval Value MSB+LSB(int 16bit)
+def dataConv(data1, data2):
+    value = data1 | (data2 << 8)
+    if value & (1 << 16 - 1):
+        value -= 1 << 16
+    return value
 
 
 class MPU9250:
@@ -182,8 +194,7 @@ class MPU9250:
         time.sleep(0.01)
 
         # set scale&continous mode
-        bus.write_byte_data(AK8963_SLAVE_ADDRESS,
-                            AK8963_CNTL1, (mfs << 4 | mode))
+        bus.write_byte_data(AK8963_SLAVE_ADDRESS, AK8963_CNTL1, (mfs << 4 | mode))
         time.sleep(0.01)
 
     # brief Check data ready
@@ -201,9 +212,9 @@ class MPU9250:
     def readAccel(self):
         data = bus.read_i2c_block_data(self.address, ACCEL_OUT, 6)
         return {
-            "x": round(self.dataConv(data[1], data[0]) * self.ares, 3),
-            "y": round(self.dataConv(data[3], data[2]) * self.ares, 3),
-            "z": round(self.dataConv(data[5], data[4]) * self.ares, 3),
+            "x": round(dataConv(data[1], data[0]) * self.ares, 3),
+            "y": round(dataConv(data[3], data[2]) * self.ares, 3),
+            "z": round(dataConv(data[5], data[4]) * self.ares, 3),
         }
 
     # Read gyro
@@ -214,9 +225,9 @@ class MPU9250:
     def readGyro(self):
         data = bus.read_i2c_block_data(self.address, GYRO_OUT, 6)
         return {
-            "x": round(self.dataConv(data[1], data[0]) * self.gres, 3),
-            "y": round(self.dataConv(data[3], data[2]) * self.gres, 3),
-            "z": round(self.dataConv(data[5], data[4]) * self.gres, 3),
+            "x": round(dataConv(data[1], data[0]) * self.gres, 3),
+            "y": round(dataConv(data[3], data[2]) * self.gres, 3),
+            "z": round(dataConv(data[5], data[4]) * self.gres, 3),
         }
 
     # Read magneto
@@ -229,14 +240,13 @@ class MPU9250:
         # check data ready
         drdy = bus.read_byte_data(AK8963_SLAVE_ADDRESS, AK8963_ST1)
         if drdy & 0x01:
-            data = bus.read_i2c_block_data(
-                AK8963_SLAVE_ADDRESS, AK8963_MAGNET_OUT, 7)
+            data = bus.read_i2c_block_data(AK8963_SLAVE_ADDRESS, AK8963_MAGNET_OUT, 7)
 
             # check overflow
             if (data[6] & 0x08) != 0x08:
-                x = self.dataConv(data[0], data[1])
-                y = self.dataConv(data[2], data[3])
-                z = self.dataConv(data[4], data[5])
+                x = dataConv(data[0], data[1])
+                y = dataConv(data[2], data[3])
+                z = dataConv(data[4], data[5])
 
                 return {
                     "x": round(x * self.mres * self.magXcoef, 3),
@@ -248,17 +258,6 @@ class MPU9250:
     #  @param [out] temperature temperature(degrees C)
     def readTemperature(self):
         data = bus.read_i2c_block_data(self.address, TEMP_OUT, 2)
-        temp = self.dataConv(data[1], data[0])
+        temp = dataConv(data[1], data[0])
 
         return round((temp / 333.87 + 21.0), 3)
-
-    # Data Convert
-    # @param [in] self The object pointer.
-    # @param [in] data1 LSB
-    # @param [in] data2 MSB
-    # @retval Value MSB+LSB(int 16bit)
-    def dataConv(self, data1, data2):
-        value = data1 | (data2 << 8)
-        if(value & (1 << 16 - 1)):
-            value -= (1 << 16)
-        return value

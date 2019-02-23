@@ -8,7 +8,7 @@ import time
 from functools import partial
 
 import psutil
-from engine import Chronograph, Display, Controller, Vehicle
+from engine import Chronograph, Controller, Display, Vehicle
 from utility import Bluetoothctl
 
 parser = argparse.ArgumentParser(description="Aviation!")

@@ -1,16 +1,14 @@
 # ultrasonic distance sensor
 
-from time import sleep, time
-# import numpy
 import logging
+from time import sleep, time
 
 from utility import GPIO
 
+logger = logging.getLogger("HCSR04")
 
-logger = logging.getLogger('HCSR04')
 
-
-class HCSR04():
+class HCSR04:
     trigger = 22
     echo = 23
     altitude = 0
@@ -28,7 +26,7 @@ class HCSR04():
         GPIO.output(self.trigger, 0)
         self.last_good_read = 0
 
-        logger.info('up')
+        logger.info("up")
 
     def distance(self):
         # blast out a signal
@@ -62,4 +60,4 @@ class HCSR04():
         return self.last_good_read
 
     def down(self):
-        logger.info('down')
+        logger.info("down")

@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 # kill $(ps aux | grep [^]]tower.py | awk '{print $2}')
 
-import sys
+import logging
 import os
 import socket
-import logging
-import psutil
-
+import sys
 from argparse import ArgumentParser
-from paramiko import ECDSAKey, SFTPClient, SSHClient
-from paramiko.ssh_exception import SSHException, AuthenticationException
 from time import sleep, strftime
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
+import psutil
+from paramiko import ECDSAKey, SFTPClient, SSHClient
+from paramiko.ssh_exception import AuthenticationException, SSHException
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 parser = ArgumentParser(description="Tower, ground control utility")
 
