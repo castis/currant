@@ -3,18 +3,17 @@ import json
 
 
 class Output:
-
-    file = None
-
-    def __init__(self):
+    def __init__(self, state):
         now = datetime.datetime.now().isoformat()
         self.file = open(f"./logs/{now}.txt", "w")
 
-    def tick(self, engine):
-        state = {"gyro": engine.vehicle.gyro, "accel": engine.vehicle.accel}
-        now = datetime.datetime.now().isoformat()
-        line = json.dumps(state)
-        self.file.write(f"{now}::{line}\n")
+    def tick(self, state):
+        line = json.dumps({
+            "time": state.chronograph.current
+            "gyro": state.vehicle.gyro,
+            "accel": engine.vehicle.accelerometer
+        })
+        self.file.write(f"{line}\n")
 
     def down(self):
         self.file.close()

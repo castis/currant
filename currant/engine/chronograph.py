@@ -13,7 +13,7 @@ def pluralize(word, n):
 class Chronograph(object):
     class State:
         current = time()
-        cap = 15
+        cap = 20
         fps = 0
         delta = 0
 

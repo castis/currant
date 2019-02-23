@@ -78,12 +78,12 @@ Once connected via wifi, change the line in your `/etc/hosts/` to:
 
 I open three terminal instances with [`itermocil --here`](https://github.com/TomAnthony/itermocil):
 
-- One for git/local work
-- One for running `pipenv shell ./tower.py`, which will watch and sync `./currant/*` to `/opt/currant` on the vehicle.
-- One for running `ssh currant`, and once inside the vehicle, running `preflight` and then `./fly.py`.
+- One for git/local work (pictured left)
+- One for running `ssh currant`, and once inside the vehicle, running `preflight` and then `./fly.py`. (top right)
+- One for running `pipenv shell ./tower.py`, which will watch and sync `./currant/*` to `/opt/currant` on the vehicle. (bottom right)
 
-<!-- ![terminal](./assets/terminal.png) -->
+![terminal](./assets/terminal.png)
 
 `preflight` is `./ansible/files/preflight`
 
-Use `./fly.py --controller` to configure a bluetooth controller.
+Use `./fly.py --setup-bt` to set up a bluetooth controller.

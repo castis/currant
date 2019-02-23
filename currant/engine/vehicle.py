@@ -28,9 +28,9 @@ class Magnet:
 hcsr04 = sensors.HCSR04()
 class Altimeter(object):
     def read(self):
-        # front of sensor is mounted 3.57cm
-        # from bottom of vehicle
-        return hcsr04.distance() - 3.57
+        # front of sensor is mounted this
+        # far from bottom of vehicle
+        return hcsr04.distance() - 3.20
 
 
 altimeter = Altimeter()
