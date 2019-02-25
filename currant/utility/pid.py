@@ -27,9 +27,9 @@ class PID(object):
         self._target = float(v)
 
     def __call__(self, feedback, time_delta):
-        feedback = float(feedback)
+        _feedback = float(feedback)
 
-        self.error = self._target - feedback
+        self.error = self._target - _feedback
 
         alpha = 0
 
@@ -41,8 +41,8 @@ class PID(object):
 
         # derivative
         if time_delta > 0:
-            alpha -= self.Kd * ((feedback - self.previous_feedback) / float(time_delta))
+            alpha -= self.Kd * ((_feedback - self.previous_feedback) / float(time_delta))
 
-        self.previous_feedback = feedback
+        self.previous_feedback = _feedback
 
         return alpha

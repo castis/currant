@@ -3,6 +3,7 @@ import io
 import logging
 import os
 import psutil
+import sys
 
 
 process = psutil.Process(os.getpid())
@@ -14,34 +15,56 @@ class Cluster:
         self.window = curses.newwin(0, 0, x, y)
         self.name = name
         self.name_color = curses.color_pair(1)
+        self.err_color = curses.color_pair(3)
         self.display = display
         self.display_color = curses.color_pair(2)
 
-    def update(self, *args, **kwargs):
-        self.window.addstr(0, 0, f"{self.name}:", self.name_color)
+    def update(self, *args, error=False, **kwargs):
+        self.window.addstr(0, 0, f"{self.name}:", self.err_color if error else self.name_color)
         self.window.addstr(
             1, 0, self.display.format(*args, **kwargs), self.display_color
         )
         self.window.noutrefresh()
 
 
+class StdOutWrapper:
+    lines = []
+    def write(self, txt):
+        self.lines.append(txt)
+
+    # here is a method so you can get stuff out of your wrapper class
+    # I am rebuilding the text, but you can do whatever you want!
+    def get_text(self):
+        return len(self.lines)
+        # return '\n'.join(self.lines[:5])
+
+
 class Display(object):
     screen = None
 
+    class State:
+        running = False
+
     def __init__(self, state):
-        if not state.debug:
+        state.display = self.State
+        if not state.args.debug:
             self.up()
 
     def up(self):
         logger.info("up")
         self.screen = curses.initscr()
+        self.State.running = True
+
+        # self.stdout = StdOutWrapper()
+        # sys.stdout = self.stdout
+        # sys.stderr = self.stdout
 
         # no cursor
         curses.curs_set(0)
 
         # turn off echoing of keys, and enter cbreak mode,
         # where no buffering is performed on keyboard input
-        # curses.noecho()
+        curses.noecho()
 
         # in keypad mode, escape sequences for special keys
         # (like the cursor keys) will be interpreted and
@@ -61,6 +84,7 @@ class Display(object):
         curses.use_default_colors()
         curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
         self.engine = Cluster(0, 0, (
             " time: {time:.2f}\n"
@@ -85,7 +109,7 @@ class Display(object):
 
         self.motors = Cluster(row_2, 22, (
             " {0: 2d}  {1: 2d}\n"
-            " {0: 2d}  {1: 2d}\n"
+            " {2: 2d}  {3: 2d}\n"
         ), name="motors")
 
         row_3 = 11
@@ -93,7 +117,7 @@ class Display(object):
             " x: {x:>7.3f}\n"
             " y: {y:>7.3f}\n"
             " z: {z:>7.3f}\n"
-        ), name="accelerometer")
+        ), name="acc")
 
         self.gyro = Cluster(row_3, 16, (
             " x: {x:>7.3f}\n"
@@ -107,8 +131,13 @@ class Display(object):
             " z: {z:>7.3f}\n"
         ), name="magnet")
 
+        row_4 = 16
+        self.log = Cluster(row_4, 0, (
+            "{0}"
+        ), name="log")
+
     def update(self, state):
-        if not self.screen:
+        if not self.State.running:
             return
 
         self.screen.erase()
@@ -122,6 +151,7 @@ class Display(object):
         )
 
         self.controller.update(
+            error=not state.controller.running,
             throttle=state.controller.lsy,
             strafe=state.controller.rsx,
             forward=state.controller.rsy,
@@ -145,11 +175,20 @@ class Display(object):
         self.gyro.update(**state.vehicle.gyro)
         self.magnet.update(**state.vehicle.magnet)
 
+        # test = "testing\ntest!"
+        # self.log.update(self.stdout.get_text())
+        # logger.info('testing')
+
         curses.doupdate()
 
     def down(self):
-        if self.screen:
+        if self.State.running:
             curses.echo()
             curses.endwin()
             self.screen = None
-            logger.info("down")
+
+        # sys.stdout = sys.__stdout__
+        # sys.stderr = sys.__stderr__
+
+        self.State.running = False
+        logger.info("down")

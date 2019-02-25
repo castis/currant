@@ -11,7 +11,7 @@ logger = logging.getLogger("vehicle")
 
 
 mpu9250 = sensors.MPU9250()
-class Magnet:
+class Magnetometer:
     initial_read = {"x": 0, "y": 0, "z": 0}
     last_good_read = {"x": 0, "y": 0, "z": 0}
 
@@ -27,14 +27,22 @@ class Magnet:
 
 hcsr04 = sensors.HCSR04()
 class Altimeter(object):
+    history = []
+
+    def distance(self):
+        self.history.insert(0, self.read())
+        if len(self.history) > 30:
+            self.history.pop()
+        return sum(self.history) / len(self.history)
+
     def read(self):
         # front of sensor is mounted this
         # far from bottom of vehicle
-        return hcsr04.distance() - 3.20
+        return hcsr04.read() - 2.90
 
 
 altimeter = Altimeter()
-magnet = Magnet()
+magnetometer = Magnetometer()
 
 class Vehicle(object):
 
@@ -44,15 +52,13 @@ class Vehicle(object):
         temperature = mpu9250.readTemperature()
         accelerometer = mpu9250.readAccel()
         gyro = mpu9250.readGyro()
-        magnet = magnet.read()
-        altitude = altimeter.read()
+        magnet = magnetometer.read()
+        altitude = altimeter.distance()
         throttle = 0
 
     def __init__(self, state):
         state.vehicle =  self.State
         state.vehicle.motors = [Motor(pin=pin) for pin in state.vehicle.motor_pins]
-
-        self.throttle_input = 0
 
         self.pitch = PID(p=1, i=0.1, d=0)
         self.roll = PID(p=1, i=0.1, d=0)
@@ -63,8 +69,8 @@ class Vehicle(object):
     def update(self, state):
         state.vehicle.accelerometer = mpu9250.readAccel()
         state.vehicle.gyro = mpu9250.readGyro()
-        state.vehicle.magnet = magnet.read()
-        state.vehicle.altitude = altimeter.read()
+        state.vehicle.magnet = magnetometer.read()
+        state.vehicle.altitude = altimeter.distance()
         state.vehicle.temperature = mpu9250.readTemperature()
 
         self.State.throttle = max(0, min(state.controller.lsy / 327, 100))
@@ -82,11 +88,11 @@ class Vehicle(object):
         )
         self.apply_roll(state.vehicle.motors, roll_delta)
 
-        yaw_delta = self.yaw(
-            state.vehicle.accelerometer['y'],
-            state.chronograph.delta
-        )
-        self.apply_roll(state.vehicle.motors, yaw_delta)
+        # yaw_delta = self.yaw(
+        #     state.vehicle.accelerometer['y'],
+        #     state.chronograph.delta
+        # )
+        # self.apply_roll(state.vehicle.motors, yaw_delta)
 
         for motor in state.vehicle.motors:
             motor.tick()

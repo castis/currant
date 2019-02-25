@@ -39,17 +39,16 @@ class Controller(object):
         def get(*args, **kwargs):
             return getattr(*args, **kwargs)
 
-    def __init__(self, state, setup_bluetooth=False):
-        if setup_bluetooth:
+    def __init__(self, state):
+        state.controller = self.State
+
+        if state.args.setup_bt:
             self.setup_bluetooth()
 
-        try:
-            self.input_device = InputDevice(self.device_file)
-            logger.info("up")
-        except FileNotFoundError:
-            logger.error(f"cannot open {self.device_file}, continuing on")
-            sleep(2)
-        state.controller = self.State
+        self.State.running = self.up()
+
+        if not self.State.running:
+            logger.error("could not open device file")
 
     def setup_bluetooth(self):
         btctl = Bluetoothctl()
@@ -94,6 +93,14 @@ class Controller(object):
             else:
                 logger.error("could not connect")
 
+    def up(self):
+        try:
+            self.input_device = InputDevice(self.device_file)
+            logger.info("up")
+        except FileNotFoundError:
+            return False
+        return True
+
     def get(self, button, default=False):
         return getattr(self.State, button, default)
 
@@ -104,6 +111,11 @@ class Controller(object):
                     self.receive_event(event, state)
             except BlockingIOError:
                 pass
+            except OSError:
+                logger.error('controller was unplugged')
+                self.down()
+        else:
+            self.State.running = self.up()
 
     # mapping for an 8bitdo sn30 pro
     def receive_event(self, event, state):
@@ -112,16 +124,16 @@ class Controller(object):
         # print(categorize(event))
         # print(event.value)
 
-        if event.code == 305:  # east
+        if event.code == 305: # east
             self.State.a = event.value == 1
 
-        elif event.code == 304:  # south
+        elif event.code == 304: # south
             self.State.b = event.value == 1
 
-        elif event.code == 307:  # north
+        elif event.code == 307: # north
             self.State.x = event.value == 1
 
-        elif event.code == 306:  # west
+        elif event.code == 306: # west
             self.State.y = event.value == 1
 
         elif event.code == 308:
@@ -149,16 +161,16 @@ class Controller(object):
             self.State.start = event.value == 1
 
         elif event.code == ecodes.ABS_RY:
-            self.State.rsy = -(event.value - 32768)
+            self.State.rsy = -(event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_RX:
-            self.State.rsx = (event.value - 32768)
+            self.State.rsx = (event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_Y:
-            self.State.lsy = -(event.value - 32768)
+            self.State.lsy = -(event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_X and event.type == 3:
-            self.State.lsx = (event.value - 32768)
+            self.State.lsx = (event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_HAT0Y:
             self.State.up = event.value == -1
@@ -177,4 +189,5 @@ class Controller(object):
         if self.input_device:
             self.input_device.close()
             self.input_device = None
+        self.State.running = False
         logger.info("down")

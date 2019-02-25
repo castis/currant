@@ -19,7 +19,7 @@ parser.add_argument(
 parser.add_argument(
     "--setup-bt",
     action="store_true",
-    dest="setup_bluetooth",
+    dest="setup_bt",
     help="Setup bluetooth controller",
 )
 
@@ -29,6 +29,7 @@ logging.basicConfig(
     level=logging.DEBUG if args.debug else logging.INFO,
     format="%(asctime)s - %(name)s - %(message)s",
     datefmt="%H:%M:%S",
+    # stream=sys.stdout,
 )
 
 logger = logging.getLogger()
@@ -36,12 +37,14 @@ logger = logging.getLogger()
 
 class State(object):
     running = True
-    debug = args.debug
+
+    def __init__(self, args):
+        self.args = args
 
 
-state = State()
+state = State(args)
 chronograph = Chronograph(state)
-controller = Controller(state, setup_bluetooth=args.setup_bluetooth)
+controller = Controller(state)
 vehicle = Vehicle(state)
 display = Display(state)
 

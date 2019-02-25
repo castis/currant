@@ -57,7 +57,9 @@ For `~/.ssh/config`:
         User root
         IdentityFile ~/.ssh/currant_ecdsa
 
-Assuming `git`, `pipenv`, and `ansible` are installed; clone this repo.
+### The vehicle again
+
+Assuming `git`, `pipenv`, and `ansible` are installed locally; clone this repo.
 
 The ansible playbooks will configure the rest of the vehicle; `cd` into `./ansible/` and run them
 

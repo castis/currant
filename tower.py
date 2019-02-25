@@ -58,13 +58,13 @@ try:
     ssh.connect(args.hostname, username=args.user, pkey=private_key)
 except AuthenticationException as e:
     logger.error("Authentication error")
-    raise
+    exit(1)
 except socket.timeout:
     logger.error("Connection timeout, is the Pi awake?")
-    raise
+    exit(1)
 except socket.error:
     logger.error("Socket error")
-    raise
+    exit(1)
 finally:
     logger.info("Connected")
 
