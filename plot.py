@@ -1,9 +1,9 @@
 import glob
-import os
-import logging
 import json
-from pylab import plot, subplot, xlabel, ylabel, title, grid, show, legend
+import logging
+import os
 
+from pylab import grid, legend, plot, show, subplot, title, xlabel, ylabel
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(message)s", datefmt="%H:%M:%S"

@@ -10,12 +10,15 @@ from functools import partial
 
 import psutil
 from engine import Chronograph, Controller, Display, Vehicle
-from utility import Bluetoothctl
 
 parser = argparse.ArgumentParser(description="Aviation!")
 
 parser.add_argument(
-    "-d", "--debug", action="store_true", dest="debug", help="Sets debug mode"
+    "-d",
+    "--debug",
+    action="store_true",
+    dest="debug",
+    help="Disables curses front end and custom logger",
 )
 parser.add_argument(
     "--setup-bt",
@@ -40,6 +43,7 @@ class State(object):
     def __init__(self, args):
         self.args = args
 
+
 state = State(args)
 
 
@@ -51,18 +55,19 @@ class Handler(logging.Handler):
     def emit(self, record):
         current_time = time.strftime("%H:%M:%S", time.gmtime())
         message = f"{current_time} - {record.name} - {record.msg}"
-
         print(message)
+        # keep N most recent records
         self.history.insert(0, message)
         if len(self.history) > 6:
             self.history.pop()
 
+
 logger = logging.getLogger()
 
-for h in list(logger.handlers):
-    logger.removeHandler(h)
-
-logger.addHandler(Handler(state.log))
+if not args.debug:
+    for h in list(logger.handlers):
+        logger.removeHandler(h)
+    logger.addHandler(Handler(state.log))
 
 
 chronograph = Chronograph(state)
@@ -84,6 +89,7 @@ def restart(display, sig, frame):
         logging.error(e)
 
     os.execl(sys.executable, sys.executable, *sys.argv)
+
 
 signal.signal(signal.SIGUSR1, partial(restart, display))
 

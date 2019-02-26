@@ -1,16 +1,17 @@
-import time
-import logging
 import collections
 import itertools
+import logging
+import time
 
 import sensors
-from utility import PID, GPIO
-
+from utility import GPIO, PID
 
 logger = logging.getLogger("vehicle")
 
 
 mpu9250 = sensors.MPU9250()
+
+
 class Magnetometer:
     initial_read = {"x": 0, "y": 0, "z": 0}
     last_good_read = {"x": 0, "y": 0, "z": 0}
@@ -26,6 +27,8 @@ class Magnetometer:
 
 
 hcsr04 = sensors.HCSR04()
+
+
 class Altimeter(object):
     history = []
 
@@ -44,8 +47,8 @@ class Altimeter(object):
 altimeter = Altimeter()
 magnetometer = Magnetometer()
 
-class Vehicle(object):
 
+class Vehicle(object):
     class State:
         motor_pins = [19, 16, 26, 20]
         motors = []
@@ -57,7 +60,7 @@ class Vehicle(object):
         throttle = 0
 
     def __init__(self, state):
-        state.vehicle =  self.State
+        state.vehicle = self.State
         state.vehicle.motors = [Motor(pin=pin) for pin in state.vehicle.motor_pins]
 
         self.pitch = PID(p=1, i=0.1, d=0)
@@ -77,14 +80,12 @@ class Vehicle(object):
         self.apply_throttle(self.State.throttle)
 
         pitch_delta = self.pitch(
-            state.vehicle.accelerometer['x'],
-            state.chronograph.delta
+            state.vehicle.accelerometer["x"], state.chronograph.delta
         )
         self.apply_pitch(state.vehicle.motors, pitch_delta)
 
         roll_delta = self.roll(
-            state.vehicle.accelerometer['y'],
-            state.chronograph.delta
+            state.vehicle.accelerometer["y"], state.chronograph.delta
         )
         self.apply_roll(state.vehicle.motors, roll_delta)
 

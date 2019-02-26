@@ -20,7 +20,9 @@ class Cluster:
         self.display_color = curses.color_pair(2)
 
     def update(self, *args, error=False, **kwargs):
-        self.window.addstr(0, 0, f"{self.name}:", self.err_color if error else self.name_color)
+        self.window.addstr(
+            0, 0, f"{self.name}:", self.err_color if error else self.name_color
+        )
         self.window.addstr(
             1, 0, self.display.format(*args, **kwargs), self.display_color
         )
@@ -70,6 +72,8 @@ class Display(object):
         curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
+        # fmt: off
+
         self.engine = Cluster(0, 0, (
             "time: {time:.2f}\n"
             "cap: {cap:.1f}\n"
@@ -117,6 +121,8 @@ class Display(object):
 
         row_4 = 16
         self.log = Cluster(row_4, 0, "{0}", name="log")
+
+        # fmt: on
 
     def update(self, state):
         if not self.State.running:

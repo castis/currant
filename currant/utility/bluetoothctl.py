@@ -2,12 +2,12 @@
 # Updated for Python 3.6.8 on a Raspberry  Pi
 
 
-import time
-import pexpect
+import logging
 import subprocess
 import sys
-import logging
+import time
 
+import pexpect
 
 logger = logging.getLogger("btctl")
 

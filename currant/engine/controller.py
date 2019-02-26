@@ -1,9 +1,8 @@
 import logging
 from time import sleep
 
-from utility import Bluetoothctl
 from evdev import InputDevice, categorize, ecodes
-
+from utility import Bluetoothctl
 
 logger = logging.getLogger("controller")
 
@@ -112,7 +111,7 @@ class Controller(object):
             except BlockingIOError:
                 pass
             except OSError:
-                logger.error('controller was unplugged')
+                logger.error("controller was unplugged")
                 self.down()
         else:
             self.State.running = self.up()
@@ -124,16 +123,16 @@ class Controller(object):
         # print(categorize(event))
         # print(event.value)
 
-        if event.code == 305: # east
+        if event.code == 305:  # east
             self.State.a = event.value == 1
 
-        elif event.code == 304: # south
+        elif event.code == 304:  # south
             self.State.b = event.value == 1
 
-        elif event.code == 307: # north
+        elif event.code == 307:  # north
             self.State.x = event.value == 1
 
-        elif event.code == 306: # west
+        elif event.code == 306:  # west
             self.State.y = event.value == 1
 
         elif event.code == 308:

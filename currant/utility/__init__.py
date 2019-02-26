@@ -1,8 +1,7 @@
 import logging
 
-
-from .pid import *
 from .bluetoothctl import Bluetoothctl
+from .pid import *
 
 try:
     import RPi.GPIO as GPIO

@@ -1,6 +1,5 @@
 import logging
-from time import time, sleep
-
+from time import sleep, time
 
 logger = logging.getLogger("chronograph")
 
