@@ -13,7 +13,7 @@ def pluralize(word, n):
 class Chronograph(object):
     class State:
         current = time()
-        cap = 2
+        cap = 20
         fps = 0
         delta = 0
 
@@ -28,7 +28,6 @@ class Chronograph(object):
     def update(self, state):
         duration = 1.0 / self.State.cap - (time() - self.State.current)
         if duration > 0.0:
-            logger.info(duration)
             sleep(duration)
         self.State.fps = 1.0 / (time() - self.State.current)
         previous = self.State.current

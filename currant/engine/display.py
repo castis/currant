@@ -27,18 +27,6 @@ class Cluster:
         self.window.noutrefresh()
 
 
-class StdOutWrapper:
-    lines = []
-    def write(self, txt):
-        self.lines.append(txt)
-
-    # here is a method so you can get stuff out of your wrapper class
-    # I am rebuilding the text, but you can do whatever you want!
-    def get_text(self):
-        return len(self.lines)
-        # return '\n'.join(self.lines[:5])
-
-
 class Display(object):
     screen = None
 
@@ -54,10 +42,6 @@ class Display(object):
         logger.info("up")
         self.screen = curses.initscr()
         self.State.running = True
-
-        # self.stdout = StdOutWrapper()
-        # sys.stdout = self.stdout
-        # sys.stderr = self.stdout
 
         # no cursor
         curses.curs_set(0)
@@ -87,54 +71,52 @@ class Display(object):
         curses.init_pair(3, curses.COLOR_RED, curses.COLOR_BLACK)
 
         self.engine = Cluster(0, 0, (
-            " time: {time:.2f}\n"
-            " cap: {cap:.1f}\n"
-            " fps: {fps:.1f}\n"
-            " memory used: {mem:.7f} MiB\n"
+            "time: {time:.2f}\n"
+            "cap: {cap:.1f}\n"
+            "fps: {fps:.1f}\n"
+            "memory used: {mem:.7f} MiB\n"
         ), name="engine")
 
         self.controller = Cluster(0, 30, (
-            " throttle: {throttle}\n"
-            " strafe: {strafe}\n"
-            " forward: {forward}\n"
-            " spin: {spin}\n"
+            "throttle: {throttle}\n"
+            "strafe: {strafe}\n"
+            "forward: {forward}\n"
+            "spin: {spin}\n"
         ), name="controller")
 
         row_2 = 6
         self.vehicle = Cluster(row_2, 0, (
-            " altitude: {altitude:>6.2f}cm\n"
-            " throttle: {throttle:>6.2f}\n"
-            " temperature: {temperature:>6.2f}\n"
+            "altitude: {altitude:>6.2f}cm\n"
+            "throttle: {throttle:>6.2f}\n"
+            "temperature: {temperature:>6.2f}\n"
         ), name="vehicle")
 
         self.motors = Cluster(row_2, 22, (
-            " {0: 2d}  {1: 2d}\n"
-            " {2: 2d}  {3: 2d}\n"
+            "{0: 2d}  {1: 2d}\n"
+            "{2: 2d}  {3: 2d}\n"
         ), name="motors")
 
         row_3 = 11
         self.accelerometer = Cluster(row_3, 0, (
-            " x: {x:>7.3f}\n"
-            " y: {y:>7.3f}\n"
-            " z: {z:>7.3f}\n"
+            "x: {x:>7.3f}\n"
+            "y: {y:>7.3f}\n"
+            "z: {z:>7.3f}\n"
         ), name="acc")
 
         self.gyro = Cluster(row_3, 16, (
-            " x: {x:>7.3f}\n"
-            " y: {y:>7.3f}\n"
-            " z: {z:>7.3f}\n"
+            "x: {x:>7.3f}\n"
+            "y: {y:>7.3f}\n"
+            "z: {z:>7.3f}\n"
         ), name="gyro")
 
         self.magnet = Cluster(row_3, 32, (
-            " x: {x:>7.3f}\n"
-            " y: {y:>7.3f}\n"
-            " z: {z:>7.3f}\n"
+            "x: {x:>7.3f}\n"
+            "y: {y:>7.3f}\n"
+            "z: {z:>7.3f}\n"
         ), name="magnet")
 
         row_4 = 16
-        self.log = Cluster(row_4, 0, (
-            "{0}"
-        ), name="log")
+        self.log = Cluster(row_4, 0, "{0}", name="log")
 
     def update(self, state):
         if not self.State.running:
@@ -175,9 +157,7 @@ class Display(object):
         self.gyro.update(**state.vehicle.gyro)
         self.magnet.update(**state.vehicle.magnet)
 
-        # test = "testing\ntest!"
-        # self.log.update(self.stdout.get_text())
-        # logger.info('testing')
+        self.log.update("\n".join(state.log))
 
         curses.doupdate()
 
@@ -186,9 +166,6 @@ class Display(object):
             curses.echo()
             curses.endwin()
             self.screen = None
-
-        # sys.stdout = sys.__stdout__
-        # sys.stderr = sys.__stderr__
 
         self.State.running = False
         logger.info("down")

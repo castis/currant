@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import datetime
 import logging
 import os
 import signal
@@ -29,20 +30,41 @@ logging.basicConfig(
     level=logging.DEBUG if args.debug else logging.INFO,
     format="%(asctime)s - %(name)s - %(message)s",
     datefmt="%H:%M:%S",
-    # stream=sys.stdout,
 )
-
-logger = logging.getLogger()
 
 
 class State(object):
     running = True
+    log = []
 
     def __init__(self, args):
         self.args = args
 
-
 state = State(args)
+
+
+class Handler(logging.Handler):
+    def __init__(self, history):
+        logging.Handler.__init__(self)
+        self.history = history
+
+    def emit(self, record):
+        current_time = time.strftime("%H:%M:%S", time.gmtime())
+        message = f"{current_time} - {record.name} - {record.msg}"
+
+        print(message)
+        self.history.insert(0, message)
+        if len(self.history) > 6:
+            self.history.pop()
+
+logger = logging.getLogger()
+
+for h in list(logger.handlers):
+    logger.removeHandler(h)
+
+logger.addHandler(Handler(state.log))
+
+
 chronograph = Chronograph(state)
 controller = Controller(state)
 vehicle = Vehicle(state)
