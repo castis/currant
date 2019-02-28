@@ -38,7 +38,7 @@ logging.basicConfig(
 
 class State(object):
     running = True
-    log = []
+    log = [""] * 6
 
     def __init__(self, args):
         self.args = args
@@ -56,10 +56,8 @@ class Handler(logging.Handler):
         current_time = time.strftime("%H:%M:%S", time.gmtime())
         message = f"{current_time} - {record.name} - {record.msg}"
         print(message)
-        # keep N most recent records
         self.history.insert(0, message)
-        if len(self.history) > 6:
-            self.history.pop()
+        self.history.pop()
 
 
 logger = logging.getLogger()

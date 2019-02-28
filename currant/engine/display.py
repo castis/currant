@@ -45,6 +45,9 @@ class Display(object):
         self.screen = curses.initscr()
         self.State.running = True
 
+        self.prev_stdout = sys.stdout
+        sys.stdout = open(os.devnull, "w")
+
         # no cursor
         curses.curs_set(0)
 
@@ -107,13 +110,13 @@ class Display(object):
             "z: {z:>7.3f}\n"
         ), name="acc")
 
-        self.gyro = Cluster(row_3, 16, (
+        self.gyro = Cluster(row_3, 15, (
             "x: {x:>7.3f}\n"
             "y: {y:>7.3f}\n"
             "z: {z:>7.3f}\n"
         ), name="gyro")
 
-        self.magnet = Cluster(row_3, 32, (
+        self.magnet = Cluster(row_3, 30, (
             "x: {x:>7.3f}\n"
             "y: {y:>7.3f}\n"
             "z: {z:>7.3f}\n"
@@ -168,10 +171,10 @@ class Display(object):
         curses.doupdate()
 
     def down(self):
-        if self.State.running:
+        if self.screen:
             curses.echo()
             curses.endwin()
             self.screen = None
-
+        sys.stdout = self.prev_stdout
         self.State.running = False
         logger.info("down")
