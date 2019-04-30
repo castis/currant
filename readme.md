@@ -1,8 +1,8 @@
 # Currant
 
-Python flight controller setup for a Raspberry Pi.
+Quadcopter flight control software
 
-![quadcopter](./assets/apr2018.jpg)
+![quadcopter](./assets/mar2019.jpg)
 
 
 ## Hardware
