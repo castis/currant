@@ -122,6 +122,7 @@ class Controller(object):
 
         # print(categorize(event))
         # print(event.value)
+        logger.info(event.value)
 
         if event.code == 305:  # east
             self.State.a = event.value == 1

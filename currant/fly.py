@@ -26,6 +26,12 @@ parser.add_argument(
     dest="setup_bt",
     help="Setup bluetooth controller",
 )
+parser.add_argument(
+    "--motor-conf",
+    action="store_true",
+    dest="motor_conf",
+    help="Ignore sensor data in order to set throttle limits on the motors",
+)
 
 args = parser.parse_args()
 
@@ -66,7 +72,6 @@ if not args.debug:
     for h in list(logger.handlers):
         logger.removeHandler(h)
     logger.addHandler(Handler(state.log))
-
 
 chronograph = Chronograph(state)
 controller = Controller(state)

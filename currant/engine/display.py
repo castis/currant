@@ -31,6 +31,7 @@ class Cluster:
 
 class Display(object):
     screen = None
+    prev_stdout = None
 
     class State:
         running = False
@@ -45,6 +46,7 @@ class Display(object):
         self.screen = curses.initscr()
         self.State.running = True
 
+        # if anything manages to get printed it messes with curses
         self.prev_stdout = sys.stdout
         sys.stdout = open(os.devnull, "w")
 
@@ -79,9 +81,10 @@ class Display(object):
 
         self.engine = Cluster(0, 0, (
             "time: {time:.2f}\n"
-            "cap: {cap:.1f}\n"
-            "fps: {fps:.1f}\n"
-            "memory used: {mem:.7f} MiB\n"
+            "frame number: {frame}\n"
+            "fps: {fps:.3f}/{cap:.0f}\n"
+            "highest d: {highest_delta:.3f}\n"
+            "memory used: {mem} MiB\n"
         ), name="engine")
 
         self.controller = Cluster(0, 30, (
@@ -91,7 +94,7 @@ class Display(object):
             "spin: {spin}\n"
         ), name="controller")
 
-        row_2 = 6
+        row_2 = 7
         self.vehicle = Cluster(row_2, 0, (
             "altitude: {altitude:>6.2f}cm\n"
             "throttle: {throttle:>6.2f}\n"
@@ -99,11 +102,11 @@ class Display(object):
         ), name="vehicle")
 
         self.motors = Cluster(row_2, 22, (
-            "{0: 2d}  {1: 2d}\n"
-            "{2: 2d}  {3: 2d}\n"
+            "{0:>3.3f}  {1:>3.3f}\n"
+            "{2:>3.3f}  {3:>3.3f}\n"
         ), name="motors")
 
-        row_3 = 11
+        row_3 = 12
         self.accelerometer = Cluster(row_3, 0, (
             "x: {x:>7.3f}\n"
             "y: {y:>7.3f}\n"
@@ -122,7 +125,13 @@ class Display(object):
             "z: {z:>7.3f}\n"
         ), name="magnet")
 
-        row_4 = 16
+        self.deviation = Cluster(row_3, 45, (
+            "x: {x:>7.3f}\n"
+            "y: {y:>7.3f}\n"
+            "z: {z:>7.3f}\n"
+        ), name="deviation")
+
+        row_4 = 17
         self.log = Cluster(row_4, 0, "{0}", name="log")
 
         # fmt: on
@@ -138,6 +147,8 @@ class Display(object):
             time=state.chronograph.current,
             cap=state.chronograph.cap,
             fps=state.chronograph.fps,
+            frame=state.chronograph.frames,
+            highest_delta=state.chronograph.highest_delta,
             mem=process.memory_info().rss / float(2 ** 20),
         )
 
@@ -165,6 +176,7 @@ class Display(object):
         self.accelerometer.update(**state.vehicle.accelerometer)
         self.gyro.update(**state.vehicle.gyro)
         self.magnet.update(**state.vehicle.magnet)
+        self.deviation.update(**state.vehicle.deviation)
 
         self.log.update("\n".join(state.log))
 
@@ -175,6 +187,10 @@ class Display(object):
             curses.echo()
             curses.endwin()
             self.screen = None
-        sys.stdout = self.prev_stdout
+
+        # reinstate stdout
+        if self.prev_stdout:
+            sys.stdout = self.prev_stdout
+
         self.State.running = False
         logger.info("down")

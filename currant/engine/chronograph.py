@@ -12,9 +12,11 @@ def pluralize(word, n):
 class Chronograph(object):
     class State:
         current = time()
-        cap = 20
+        cap = 10
         fps = 0
+        frames = 0
         delta = 0
+        highest_delta = 0
 
     def __init__(self, state):
         self.started = time()
@@ -32,6 +34,9 @@ class Chronograph(object):
         previous = self.State.current
         self.State.current = time()
         self.State.delta = self.State.current - previous
+        if self.State.delta > self.State.highest_delta:
+            self.State.highest_delta = self.State.delta
+        self.State.frames = self.State.frames + 1
 
     def since_start(self):
         seconds = int(time() - self.started)

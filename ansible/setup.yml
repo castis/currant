@@ -8,8 +8,12 @@
   - name: disable root login with password
     lineinfile:
       path: /etc/ssh/sshd_config
-      regexp: '^#?(PermitRootLogin)'
-      line: '\1 prohibit-password'
+      regexp: ^#?(PermitRootLogin)
+      line: \1 prohibit-password
+      backrefs: yes
+      validate: sshd -t -f %s
+    notify: ssh
+    tags: ssh
 
   - name: remove the default user
     user:
@@ -18,7 +22,16 @@
       remove: yes
 
   - apt:
-      name: ['vim', 'python3-smbus', 'python3-dev', 'python3-pip', 'python3-setuptools', 'dnsmasq', 'hostapd', 'bluetooth', 'libbluetooth-dev']
+      name:
+        - vim
+        - python3-smbus
+        - python3-dev
+        - python3-pip
+        - python3-setuptools
+        - dnsmasq
+        - hostapd
+        - bluetooth
+        - libbluetooth-dev
       state: present
     tags: [packages, apt]
 
