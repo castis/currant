@@ -23,6 +23,8 @@ class Cluster:
         self.window.addstr(
             0, 0, f"{self.name}:", self.err_color if error else self.name_color
         )
+        logger.info(self.display.format(*args, **kwargs))
+        logger.info(self.display_color)
         self.window.addstr(
             1, 0, self.display.format(*args, **kwargs), self.display_color
         )
@@ -82,8 +84,8 @@ class Display(object):
         self.engine = Cluster(0, 0, (
             "time: {time:.2f}\n"
             "frame number: {frame}\n"
-            "fps: {fps:.3f}/{cap:.0f}\n"
-            "highest d: {highest_delta:.3f}\n"
+            "fps: {fps:.2f}/{cap:.0f}\n"
+            "highest d: {highest_delta:.2f}\n"
             "memory used: {mem} MiB\n"
         ), name="engine")
 
@@ -111,7 +113,7 @@ class Display(object):
             "x: {x:>7.3f}\n"
             "y: {y:>7.3f}\n"
             "z: {z:>7.3f}\n"
-        ), name="acc")
+        ), name="accel")
 
         self.gyro = Cluster(row_3, 15, (
             "x: {x:>7.3f}\n"
@@ -144,11 +146,11 @@ class Display(object):
         self.screen.noutrefresh()
 
         self.engine.update(
-            time=state.chronograph.current,
-            cap=state.chronograph.cap,
-            fps=state.chronograph.fps,
-            frame=state.chronograph.frames,
-            highest_delta=state.chronograph.highest_delta,
+            time=state.timer.current,
+            cap=state.timer.cap,
+            fps=state.timer.fps,
+            frame=state.timer.frames,
+            highest_delta=state.timer.highest_delta,
             mem=process.memory_info().rss / float(2 ** 20),
         )
 
@@ -178,7 +180,7 @@ class Display(object):
         self.magnet.update(**state.vehicle.magnet)
         self.deviation.update(**state.vehicle.deviation)
 
-        self.log.update("\n".join(state.log))
+        # self.log.update("\n".join(state.log))
 
         curses.doupdate()
 

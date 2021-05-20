@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # kill $(ps aux | grep [^]]tower.py | awk '{print $2}')
+# kill $(ps aux | awk '/[^]]tower.py/ {print $2}')
 
 import logging
 import os
@@ -18,31 +19,21 @@ parser = ArgumentParser(description="Tower, ground control utility")
 
 parser.add_argument("--hostname", default="currant", help="Hostname of the vehicle")
 parser.add_argument("--user", default="root", help="User name on the vehicle")
-parser.add_argument(
-    "--identity", default="~/.ssh/currant_ecdsa", help="Path to the SSH identity file"
-)
-parser.add_argument(
-    "--local-dir", default="./currant", help="Local directory to watch and sync from"
-)
-parser.add_argument(
-    "--remote-dir", default="/opt/currant", help="Remote directory to sync to"
-)
-parser.add_argument(
-    "-c", "--configure", action="store_true", help="Run ansible configuration and exit"
-)
+parser.add_argument("--identity", default="~/.ssh/currant_ecdsa", help="Path to the SSH identity file")
+parser.add_argument("--local-dir", default="./currant", help="Local directory to watch and sync from")
+parser.add_argument("--remote-dir", default="/opt/currant", help="Remote directory to sync to")
+parser.add_argument("-c", "--configure", action="store_true", help="Run ansible configuration and exit")
 
 args = parser.parse_args()
+args.local_dir = os.path.abspath(args.local_dir)
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(message)s", datefmt="%H:%M:%S"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s", datefmt="%H:%M:%S")
+logging.getLogger("paramiko.transport").setLevel(logging.ERROR)
 logger = logging.getLogger()
-
 
 if args.configure:
     logger.info("here is where we run ansible playbooks")
     exit(0)
-
 
 try:
     key_file = os.path.expanduser(args.identity)
@@ -50,23 +41,27 @@ try:
 except FileNotFoundError as e:
     logger.error(f"{args.identity} not found")
     exit(1)
+except SSHException as e:
+    logger.error(f"{key_file}; {e}")
+    exit(1)
 
 ssh = SSHClient()
 ssh.load_system_host_keys()
 
 try:
+    logger.info(f"connecting to {args.hostname}")
     ssh.connect(args.hostname, username=args.user, pkey=private_key)
 except AuthenticationException as e:
-    logger.error("Authentication error")
+    logger.error("authentication error")
     exit(1)
 except socket.timeout:
-    logger.error("Connection timeout, is the Pi awake?")
+    logger.error("connection timeout, is the vehicle awake?")
     exit(1)
 except socket.error:
-    logger.error("Socket error")
+    logger.error("socket error")
     exit(1)
 finally:
-    logger.info("Connected")
+    logger.info("connected")
 
 
 class SFTPClient(SFTPClient):
@@ -96,7 +91,7 @@ class FSEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
         # when this file is modified, restart this process
         if os.path.basename(event.src_path) == os.path.basename(__file__):
-            logger.info("Restarting")
+            logger.info("restarting")
             try:
                 p = psutil.Process(os.getpid())
                 for handler in p.open_files() + p.connections():
@@ -111,14 +106,22 @@ class FSEventHandler(FileSystemEventHandler):
 
 
 def sync_code_folder():
-    logger.info("Syncing")
+    logger.info("syncing")
     try:
         sftp.put_dir(args.local_dir, args.remote_dir)
         ssh.exec_command(f'find {args.remote_dir} -type f -iname "*.pyc" -delete')
-        # ssh.exec_command("kill -SIGUSR1 $(ps -aux | grep [^]]fly.py | awk '{print $2}')")
         # ssh.exec_command("systemctl restart currant.service")
+        # ssh.exec_command("kill -SIGUSR1 $(ps -aux | awk '/[^]]fly.py/ {print $2}')")
+
+    except FileNotFoundError as e:
+        logger.error(f"{args.remote_dir} missing, trying to create")
+
+        stdin, stdout, stderr = ssh.exec_command(f'mkdir {args.remote_dir}')
+        if stdout.channel.recv_exit_status() == 0:
+            logger.error(f'all good')
     except Exception as e:
         logger.error(e)
+        exit(1)
 
 
 observer = Observer()
@@ -127,12 +130,12 @@ observer.schedule(FSEventHandler(), ".", recursive=True)
 try:
     date = strftime("%m%d%H%M%Y.%S")
     ssh.exec_command(f"date {date}")
-    logger.info(f"Set vehicle clock to {date}")
+    logger.info(f"set vehicle clock to {date}")
 
     sync_code_folder()
 
     observer.start()
-    logger.info("Watching for changes")
+    logger.info("watching for changes")
 
     # if args.getlogs:
     #     logger.info('Fetching debug logs')
@@ -143,7 +146,7 @@ try:
         sleep(1)
 
 except KeyboardInterrupt:
-    logger.info("Caught ^C, quitting")
+    logger.info(" quitting")
 
 finally:
     observer.stop()
@@ -154,4 +157,4 @@ finally:
         pass
     ssh.close()
 
-logger.info("Aviation!")
+logger.info("aviation!")

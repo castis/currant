@@ -35,31 +35,6 @@
       state: present
     tags: [packages, apt]
 
-  # TODO: why is this failing?
-  # - pip:
-  #     name: pipenv
-  #     executable: pip3
-  #   tags: [pip]
-
-  - copy:
-      src: ./app/
-      dest: /opt/currant
-      owner: root
-      group: root
-      mode: 0644
-    tags: [install]
-
-  - command: pipenv install
-    args:
-      chdir: /opt/currant
-      creates: /opt/currant/Pipfile.lock
-    tags: [install]
-
-  - file:
-      dest: /opt/currant/fly.py
-      mode: a+x
-    tags: [install]
-
   # - name: configure systemd service
   #   copy:
   #     src: currant.service
@@ -122,6 +97,12 @@
     #     daemon_reload: yes
     #     enabled: yes
     #     state: restarted
+
+    - name: ssh
+      systemd:
+        name: sshd
+        enabled: yes
+        state: restarted
 
     - name: dnsmasq
       systemd:

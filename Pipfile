@@ -3,15 +3,14 @@ url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-[dev-packages]
-
 [packages]
 psutil = "*"
 paramiko = "*"
 watchdog = "*"
 fabric = "*"
 ansible = "*"
-plotly = "*"
-matplotlib = "*"
-cryptography = "==2.4.2"
-pytest = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9.5"

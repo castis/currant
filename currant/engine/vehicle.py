@@ -9,8 +9,11 @@ from utility import GPIO, PID
 
 logger = logging.getLogger("vehicle")
 
-
-mpu9250 = sensors.MPU9250()
+try:
+    mpu9250 = sensors.MPU9250()
+except OSError as e:
+    logger.critical("9dof board not found")
+    exit(1)
 
 
 class Magnetometer:
@@ -38,6 +41,7 @@ class Magnetometer:
             "z": self.initial_read["z"] - self.last_good_read["z"],
         }
 
+
 class Altimeter(object):
     history = []
 
@@ -61,8 +65,10 @@ magnetometer = Magnetometer()
 
 
 class Vehicle(object):
+
     class State:
-        motor_pins = [19, 16, 26, 20]
+        control_pins = [19, 16, 26, 20]
+        power_pins = [17, 27, 22, 23]
         motors = []
         temperature = 0
         # temperature = mpu9250.readTemperature()
@@ -74,7 +80,10 @@ class Vehicle(object):
 
     def __init__(self, state):
         state.vehicle = self.State
-        state.vehicle.motors = [Motor(pin=pin) for pin in state.vehicle.motor_pins]
+        state.vehicle.motors = [
+            Motor(control_pin=control, power_pin=power)
+            for control, power in zip(state.vehicle.control_pins, state.vehicle.power_pins)
+        ]
 
         self.pitch = PID(p=1.0, i=0.1, d=0)
         self.roll = PID(p=1.0, i=0.1, d=0)
@@ -94,24 +103,17 @@ class Vehicle(object):
         self.State.throttle = state.controller.lsy
         self.apply_throttle(self.State.throttle)
 
-        if not state.args.motor_conf:
-            pitch_delta = self.pitch(
-                state.vehicle.accelerometer["x"],
-                state.chronograph.delta
-            )
-            self.apply_pitch(state.vehicle.motors, pitch_delta)
+        pitch_delta = self.pitch(state.vehicle.accelerometer["x"], state.timer.delta)
+        self.apply_pitch(state.vehicle.motors, pitch_delta)
 
-            roll_delta = self.roll(
-                state.vehicle.accelerometer["y"],
-                state.chronograph.delta
-            )
-            self.apply_roll(state.vehicle.motors, roll_delta)
+        roll_delta = self.roll(state.vehicle.accelerometer["y"], state.timer.delta)
+        self.apply_roll(state.vehicle.motors, roll_delta)
 
-            # yaw_delta = self.yaw(
-            #     state.vehicle.deviation["y"],
-            #     state.chronograph.delta
-            # )
-            # self.apply_yaw(state.vehicle.motors, yaw_delta)
+        # yaw_delta = self.yaw(
+        #     state.vehicle.deviation["y"],
+        #     state.timer.delta
+        # )
+        # self.apply_yaw(state.vehicle.motors, yaw_delta)
 
         for motor in state.vehicle.motors:
             motor.tick()
@@ -156,24 +158,32 @@ class Motor(object):
     min_duty_cycle = 30
     max_duty_cycle = 80
     duty_cycle_range = None
-    pin = None
     throttle = 0
     dc = 0
 
-    def __init__(self, pin=None):
+    control_pin = None
+    power_pin = None
+
+    def __init__(self, control_pin=None, power_pin=None):
         self.duty_cycle_range = self.max_duty_cycle - self.min_duty_cycle
-        GPIO.setup(pin, GPIO.OUT)
 
-
-
+        GPIO.setup(control_pin, GPIO.OUT)
         # 500hz appears to generate the least amount of popping from the motor
         # as long as a prop is installed
-        self.pin = GPIO.PWM(pin, 500)
-        self.pin.start(self.min_duty_cycle)
+        self.control_pin = GPIO.PWM(control_pin, 500)
+
+        self.power_pin = power_pin
+        GPIO.setup(self.power_pin, GPIO.OUT)
 
     def tick(self):
+        self.control_pin.start(self.min_duty_cycle)
         duty_cycle = self.min_duty_cycle + (self.throttle * self.duty_cycle_range / 100)
         duty_cycle = max(min(self.max_duty_cycle, duty_cycle), self.min_duty_cycle)
 
         self.dc = duty_cycle
-        self.pin.ChangeDutyCycle(duty_cycle)
+
+    def on(self):
+        GPIO.output(self.power_pin, GPIO.HIGH)
+
+    def off(self):
+        GPIO.output(self.power_pin, GPIO.LOW)

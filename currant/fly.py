@@ -9,7 +9,7 @@ import time
 from functools import partial
 
 import psutil
-from engine import Chronograph, Controller, Display, Vehicle
+from engine import Timer, Controller, Display, Vehicle
 
 parser = argparse.ArgumentParser(description="Aviation!")
 
@@ -25,12 +25,6 @@ parser.add_argument(
     action="store_true",
     dest="setup_bt",
     help="Setup bluetooth controller",
-)
-parser.add_argument(
-    "--motor-conf",
-    action="store_true",
-    dest="motor_conf",
-    help="Ignore sensor data in order to set throttle limits on the motors",
 )
 
 args = parser.parse_args()
@@ -73,7 +67,7 @@ if not args.debug:
         logger.removeHandler(h)
     logger.addHandler(Handler(state.log))
 
-chronograph = Chronograph(state)
+timer = Timer(state)
 controller = Controller(state)
 vehicle = Vehicle(state)
 display = Display(state)
@@ -102,7 +96,7 @@ try:
     while state.running:
         controller.update(state)
         vehicle.update(state)
-        chronograph.update(state)
+        timer.update(state)
         display.update(state)
 
 except Exception as e:
@@ -121,7 +115,7 @@ finally:
     display.down()
     vehicle.down()
     controller.down()
-    chronograph.down()
+    timer.down()
 
     if stored_exception:
         raise stored_exception

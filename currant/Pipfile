@@ -1,24 +1,16 @@
 [[source]]
-
+url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
-url = "https://pypi.python.org/simple"
-
 
 [packages]
-
 evdev = "*"
-numpy = "*"
 pexpect = "*"
 psutil = "*"
 "rpi.gpio" = "*"
 "smbus2" = "*"
 
-
 [dev-packages]
 
-
-
 [requires]
-
-python_version = "3.6.8"
+python_version = "3.9.5"

@@ -87,10 +87,7 @@ class Controller(object):
 
         if device in btctl.get_paired_devices():
             connected = btctl.connect(device["mac_address"])
-            logger.info("%s to %s" % (
-                "connected" if connected else "could not connect",
-                device["name"]
-            ))
+            logger.info("%s to %s" % ("connected" if connected else "could not connect", device["name"]))
 
     def up(self):
         try:
@@ -122,7 +119,7 @@ class Controller(object):
 
         # print(categorize(event))
         # print(event.value)
-        logger.info(event.value)
+        logger.debug(event.value)
 
         if event.code == 305:  # east
             self.State.a = event.value == 1
@@ -132,7 +129,6 @@ class Controller(object):
 
         elif event.code == 307:  # north
             self.State.x = event.value == 1
-            logger.info("x was pressed")
 
         elif event.code == 306:  # west
             self.State.y = event.value == 1

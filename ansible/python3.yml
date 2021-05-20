@@ -1,7 +1,24 @@
 ---
 - hosts: currants
   vars:
-    python_version: 3.6.8
+    python_version: 3.9.5
+    build_environment:
+      - build-essential
+      - tk-dev
+      - libncurses5-dev
+      - libncursesw5-dev
+      - libreadline6-dev
+      - libdb5.3-dev
+      - libgdbm-dev
+      - libsqlite3-dev
+      - libssl-dev
+      - libbz2-dev
+      - libexpat1-dev
+      - liblzma-dev
+      - zlib1g-dev
+      - libffi-dev
+      - libc-dev
+
   tasks:
     - name: update && upgrade
       apt:
@@ -13,17 +30,7 @@
       apt:
         name: "{{ item }}"
         state: present
-      with_items:
-        - build-essential
-        - checkinstall
-        - libreadline-gplv2-dev
-        - libncursesw5-dev
-        - libssl-dev
-        - libsqlite3-dev
-        - tk-dev
-        - libgdbm-dev
-        - libc6-dev
-        - libbz2-dev
+      with_items: "{{ build_environment }}"
 
     - name: fetching source
       unarchive:
@@ -44,17 +51,7 @@
       apt:
         name: "{{ item }}"
         state: absent
-      with_items:
-        - build-essential
-        - checkinstall
-        - libreadline-gplv2-dev
-        - libncursesw5-dev
-        - libssl-dev
-        - libsqlite3-dev
-        - tk-dev
-        - libgdbm-devr
-        - libc6-dev
-        - libbz2-dev
+      with_items: "{{ build_environment }}"
 
     - file:
         state: absent

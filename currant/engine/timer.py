@@ -1,18 +1,36 @@
 import logging
 from time import sleep, time
 
-logger = logging.getLogger("chronograph")
+logger = logging.getLogger("timer")
 
 
-def pluralize(word, n):
+def pluralize(word: str, n: int) -> str:
     s = "s" if n != 1 else ""
     return f"{n} {word}{s}"
 
 
-class Chronograph(object):
+def segmented(started: int) -> tuple[int, int, int]:
+    seconds = int(time() - started)
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return h, m, s
+
+
+def get_run_time(started):
+    run_time = []
+    (h, m, s) = segmented(started)
+    if h > 0:
+        run_time.append(pluralize("hour", h))
+    if m > 0:
+        run_time.append(pluralize("minute", m))
+    run_time.append(pluralize("second", s))
+    return ", ".join(run_time)
+
+
+class Timer(object):
     class State:
         current = time()
-        cap = 10
+        cap = 20
         fps = 0
         frames = 0
         delta = 0
@@ -21,10 +39,7 @@ class Chronograph(object):
     def __init__(self, state):
         self.started = time()
         logger.info("up")
-        state.chronograph = self.State
-
-    def __repr__(self):
-        return "%02d:%02d:%02d" % self.since_start()
+        state.timer = self.State
 
     def update(self, state):
         duration = 1.0 / self.State.cap - (time() - self.State.current)
@@ -38,22 +53,6 @@ class Chronograph(object):
             self.State.highest_delta = self.State.delta
         self.State.frames = self.State.frames + 1
 
-    def since_start(self):
-        seconds = int(time() - self.started)
-        m, s = divmod(seconds, 60)
-        h, m = divmod(m, 60)
-        return (h, m, s)
-
-    def get_run_time(self):
-        run_time = []
-        (h, m, s) = self.since_start()
-        if h > 0:
-            run_time.append(pluralize("hour", h))
-        if m > 0:
-            run_time.append(pluralize("minute", m))
-        run_time.append(pluralize("second", s))
-        return ", ".join(run_time)
-
     def down(self):
         logger.info("down")
-        logger.info(f"run time: {self.get_run_time()}")
+        logger.info(f"run time: {get_run_time(self.started)}")

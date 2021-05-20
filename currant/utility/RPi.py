@@ -1,3 +1,6 @@
+"""
+RPi GPIO shim
+"""
 import logging
 
 logger = logging.getLogger("GPIO")

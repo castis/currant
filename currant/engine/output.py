@@ -9,7 +9,7 @@ class Output:
 
     def tick(self, state):
         line = json.dumps({
-            "time": state.chronograph.current
+            "time": state.timer.current,
             "gyro": state.vehicle.gyro,
             "accel": engine.vehicle.accelerometer
         })

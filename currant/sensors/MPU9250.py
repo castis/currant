@@ -109,14 +109,12 @@ class MPU9250:
         self.configAK8963(AK8963_MODE_C8HZ, AK8963_BIT_16)
 
     # Search Device
-    #  @param [in] self The object pointer.
     #  @retval true device connected
     #  @retval false device error
     def searchDevice(self):
         return bus.read_byte_data(self.address, WHO_AM_I) == DEVICE_ID
 
     # Configure MPU-9250
-    #  @param [in] self The object pointer.
     #  @param [in] gfs Gyro Full Scale Select(default:GFS_250[+250dps])
     #  @param [in] afs Accel Full Scale Select(default:AFS_2G[2g])
     def configMPU9250(self, gfs, afs):
@@ -166,7 +164,6 @@ class MPU9250:
         time.sleep(0.1)
 
     # Configure AK8963
-    #  @param [in] self The object pointer.
     #  @param [in] mode Magneto Mode Select(default:AK8963_MODE_C8HZ[Continous 8Hz])
     #  @param [in] mfs Magneto Scale Select(default:AK8963_BIT_16[16bit])
     def configAK8963(self, mode, mfs):
@@ -198,14 +195,12 @@ class MPU9250:
         time.sleep(0.01)
 
     # brief Check data ready
-    #  @param [in] self The object pointer.
     #  @retval True data is ready
     #  @retval False data is not ready
     def checkDataReady(self):
         return bus.read_byte_data(self.address, INT_STATUS) & 0x01
 
     # Read accelerometer
-    #  @param [in] self The object pointer.
     #  @retval x : x-axis data
     #  @retval y : y-axis data
     #  @retval z : z-axis data
@@ -218,7 +213,6 @@ class MPU9250:
         }
 
     # Read gyro
-    #  @param [in] self The object pointer.
     #  @retval x : x-gyro data
     #  @retval y : y-gyro data
     #  @retval z : z-gyro data
@@ -231,7 +225,6 @@ class MPU9250:
         }
 
     # Read magneto
-    #  @param [in] self The object pointer.
     #  @retval x : X-magneto data
     #  @retval y : y-magneto data
     #  @retval z : Z-magneto data
