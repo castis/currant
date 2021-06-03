@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 from time import sleep, strftime
 
 import psutil
-from paramiko import ECDSAKey, SFTPClient, SSHClient
+from paramiko import ECDSAKey, SFTPClient, SSHClient, AutoAddPolicy
 from paramiko.ssh_exception import AuthenticationException, SSHException
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -46,6 +46,7 @@ except SSHException as e:
     exit(1)
 
 ssh = SSHClient()
+ssh.set_missing_host_key_policy(AutoAddPolicy())
 ssh.load_system_host_keys()
 
 try:

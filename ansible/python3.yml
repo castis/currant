@@ -56,3 +56,12 @@
     - file:
         state: absent
         path: "/tmp/Python-{{ python_version }}"
+
+    # set python3 as the default
+    - file:
+        src: "/usr/local/bin/{{ item }}3"
+        dest: "/usr/bin/{{ item }}"
+        state: link
+      with_items:
+        - python
+        - pip

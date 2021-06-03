@@ -2,9 +2,9 @@ import curses
 import io
 import logging
 import os
-import psutil
 import sys
 
+import psutil
 
 process = psutil.Process(os.getpid())
 logger = logging.getLogger("display")
@@ -20,14 +20,10 @@ class Cluster:
         self.display_color = curses.color_pair(2)
 
     def update(self, *args, error=False, **kwargs):
-        self.window.addstr(
-            0, 0, f"{self.name}:", self.err_color if error else self.name_color
-        )
+        self.window.addstr(0, 0, f"{self.name}:", self.err_color if error else self.name_color)
         logger.info(self.display.format(*args, **kwargs))
         logger.info(self.display_color)
-        self.window.addstr(
-            1, 0, self.display.format(*args, **kwargs), self.display_color
-        )
+        self.window.addstr(1, 0, self.display.format(*args, **kwargs), self.display_color)
         self.window.noutrefresh()
 
 
@@ -35,18 +31,24 @@ class Display(object):
     screen = None
     prev_stdout = None
 
-    class State:
-        running = False
+    running = False
 
-    def __init__(self, state):
-        state.display = self.State
-        if not state.args.debug:
-            self.up()
+    def __init__(self, args, timer, controller, vehicle):
+        self.timer = timer
+        self.controller = controller
+        self.vehicle = vehicle
+        self.enabled = args.display_enabled
+
+        self.up()
 
     def up(self):
+        if not self.enabled:
+            logger.info("display not enabled")
+            return
+
         logger.info("up")
         self.screen = curses.initscr()
-        self.State.running = True
+        self.running = True
 
         # if anything manages to get printed it messes with curses
         self.prev_stdout = sys.stdout
@@ -81,7 +83,7 @@ class Display(object):
 
         # fmt: off
 
-        self.engine = Cluster(0, 0, (
+        self.engineCluster = Cluster(0, 0, (
             "time: {time:.2f}\n"
             "frame number: {frame}\n"
             "fps: {fps:.2f}/{cap:.0f}\n"
@@ -89,7 +91,7 @@ class Display(object):
             "memory used: {mem} MiB\n"
         ), name="engine")
 
-        self.controller = Cluster(0, 30, (
+        self.controllerCluster = Cluster(0, 30, (
             "throttle: {throttle}\n"
             "strafe: {strafe}\n"
             "forward: {forward}\n"
@@ -97,13 +99,13 @@ class Display(object):
         ), name="controller")
 
         row_2 = 7
-        self.vehicle = Cluster(row_2, 0, (
+        self.vehicleCluster = Cluster(row_2, 0, (
             "altitude: {altitude:>6.2f}cm\n"
             "throttle: {throttle:>6.2f}\n"
             "temperature: {temperature:>6.2f}\n"
         ), name="vehicle")
 
-        self.motors = Cluster(row_2, 22, (
+        self.motorCluster = Cluster(row_2, 22, (
             "{0:>3.3f}  {1:>3.3f}\n"
             "{2:>3.3f}  {3:>3.3f}\n"
         ), name="motors")
@@ -138,47 +140,47 @@ class Display(object):
 
         # fmt: on
 
-    def update(self, state):
-        if not self.State.running:
+    def update(self):
+        if not self.running:
             return
 
         self.screen.erase()
         self.screen.noutrefresh()
 
-        self.engine.update(
-            time=state.timer.current,
-            cap=state.timer.cap,
-            fps=state.timer.fps,
-            frame=state.timer.frames,
-            highest_delta=state.timer.highest_delta,
+        self.engineCluster.update(
+            time=self.timer.current,
+            cap=self.timer.cap,
+            fps=self.timer.fps,
+            frame=self.timer.frames,
+            highest_delta=self.timer.highest_delta,
             mem=process.memory_info().rss / float(2 ** 20),
         )
 
-        self.controller.update(
-            error=not state.controller.running,
-            throttle=state.controller.lsy,
-            strafe=state.controller.rsx,
-            forward=state.controller.rsy,
-            spin=state.controller.lsx,
+        self.controllerCluster.update(
+            error=not self.controller.running,
+            throttle=self.controller.buttons.lsy,
+            strafe=self.controller.buttons.rsx,
+            forward=self.controller.buttons.rsy,
+            spin=self.controller.buttons.lsx,
         )
 
-        self.vehicle.update(
-            altitude=state.vehicle.altitude,
-            throttle=state.vehicle.throttle,
-            temperature=state.vehicle.temperature,
+        self.vehicleCluster.update(
+            altitude=self.vehicle.altitude,
+            throttle=self.vehicle.throttle,
+            temperature=self.vehicle.temperature,
         )
 
-        self.motors.update(
-            state.vehicle.motors[0].dc,
-            state.vehicle.motors[1].dc,
-            state.vehicle.motors[2].dc,
-            state.vehicle.motors[3].dc,
+        self.motorCluster.update(
+            self.vehicle.motors[0].dc,
+            self.vehicle.motors[1].dc,
+            self.vehicle.motors[2].dc,
+            self.vehicle.motors[3].dc,
         )
 
-        self.accelerometer.update(**state.vehicle.accelerometer)
-        self.gyro.update(**state.vehicle.gyro)
-        self.magnet.update(**state.vehicle.magnet)
-        self.deviation.update(**state.vehicle.deviation)
+        self.accelerometer.update(**self.vehicle.accelerometer)
+        self.gyro.update(**self.vehicle.gyro)
+        self.magnet.update(**self.vehicle.magnet)
+        self.deviation.update(**self.vehicle.deviation)
 
         # self.log.update("\n".join(state.log))
 
@@ -194,5 +196,5 @@ class Display(object):
         if self.prev_stdout:
             sys.stdout = self.prev_stdout
 
-        self.State.running = False
+        self.running = False
         logger.info("down")

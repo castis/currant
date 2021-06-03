@@ -1,0 +1,5 @@
+evdev==1.4.0
+pexpect==4.8.0
+psutil==5.8.0
+RPi.GPIO==0.7.0
+smbus2==0.4.1

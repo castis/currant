@@ -16,7 +16,7 @@ def segmented(started: int) -> tuple[int, int, int]:
     return h, m, s
 
 
-def get_run_time(started):
+def get_run_time(started: int) -> str:
     run_time = []
     (h, m, s) = segmented(started)
     if h > 0:
@@ -28,30 +28,28 @@ def get_run_time(started):
 
 
 class Timer(object):
-    class State:
-        current = time()
-        cap = 20
-        fps = 0
-        frames = 0
-        delta = 0
-        highest_delta = 0
+    current = time()
+    cap = 30
+    fps = 0
+    frames = 0
+    delta = 0
+    highest_delta = 0
 
-    def __init__(self, state):
+    def __init__(self, args):
         self.started = time()
         logger.info("up")
-        state.timer = self.State
 
-    def update(self, state):
-        duration = 1.0 / self.State.cap - (time() - self.State.current)
+    def update(self):
+        duration = 1.0 / self.cap - (time() - self.current)
         if duration > 0.0:
             sleep(duration)
-        self.State.fps = 1.0 / (time() - self.State.current)
-        previous = self.State.current
-        self.State.current = time()
-        self.State.delta = self.State.current - previous
-        if self.State.delta > self.State.highest_delta:
-            self.State.highest_delta = self.State.delta
-        self.State.frames = self.State.frames + 1
+        self.fps = 1.0 / (time() - self.current)
+        previous = self.current
+        self.current = time()
+        self.delta = self.current - previous
+        if self.delta > self.highest_delta:
+            self.highest_delta = self.delta
+        self.frames = self.frames + 1
 
     def down(self):
         logger.info("down")

@@ -8,11 +8,13 @@ logger = logging.getLogger("controller")
 
 
 class Controller(object):
+    running = False
+
     device_file = "/dev/input/event0"
     input_device = None
     raw = {}
 
-    class State:
+    class buttons:
         a = False
         b = False
         x = False
@@ -38,15 +40,13 @@ class Controller(object):
         def get(*args, **kwargs):
             return getattr(*args, **kwargs)
 
-    def __init__(self, state):
-        state.controller = self.State
-
-        if state.args.setup_bt:
+    def __init__(self, args):
+        if args.setup_bt:
             self.setup_bluetooth()
 
-        self.State.running = self.up()
+        self.running = self.up()
 
-        if not self.State.running:
+        if not self.running:
             logger.error("could not open device file")
 
     def setup_bluetooth(self):
@@ -98,23 +98,23 @@ class Controller(object):
         return True
 
     def get(self, button, default=False):
-        return getattr(self.State, button, default)
+        return getattr(self.buttons, button, default)
 
-    def update(self, state):
+    def update(self):
         if self.input_device:
             try:
                 for event in self.input_device.read():
-                    self.receive_event(event, state)
+                    self.receive_event(event)
             except BlockingIOError:
                 pass
             except OSError:
                 logger.error("controller was unplugged")
                 self.down()
         else:
-            self.State.running = self.up()
+            self.running = self.up()
 
     # mapping for an 8bitdo sn30 pro
-    def receive_event(self, event, state):
+    def receive_event(self, event):
         self.raw[event.code] = event.value
 
         # print(categorize(event))
@@ -122,69 +122,69 @@ class Controller(object):
         logger.debug(event.value)
 
         if event.code == 305:  # east
-            self.State.a = event.value == 1
+            self.buttons.a = event.value == 1
 
         elif event.code == 304:  # south
-            self.State.b = event.value == 1
+            self.buttons.b = event.value == 1
 
         elif event.code == 307:  # north
-            self.State.x = event.value == 1
+            self.buttons.x = event.value == 1
 
         elif event.code == 306:  # west
-            self.State.y = event.value == 1
+            self.buttons.y = event.value == 1
 
         elif event.code == 308:
-            self.State.l1 = event.value == 1
+            self.buttons.l1 = event.value == 1
 
         elif event.code == 309:
-            self.State.r1 = event.value == 1
+            self.buttons.r1 = event.value == 1
 
         elif event.code == ecodes.ABS_Z:
-            self.State.l2 = event.value > 0
+            self.buttons.l2 = event.value > 0
 
         elif event.code == ecodes.ABS_RZ:
-            self.State.r2 = event.value > 0
+            self.buttons.r2 = event.value > 0
 
         elif event.code == 312:
-            self.State.l3 = event.value > 0
+            self.buttons.l3 = event.value > 0
 
         elif event.code == 313:
-            self.State.r3 = event.value > 0
+            self.buttons.r3 = event.value > 0
 
         elif event.code == 310:
-            self.State.select = event.value == 1
+            self.buttons.select = event.value == 1
 
         elif event.code == 311:
-            self.State.start = event.value == 1
+            self.buttons.start = event.value == 1
 
         elif event.code == ecodes.ABS_RY:
-            self.State.rsy = -(event.value - 32768) / 327.68
+            self.buttons.rsy = -(event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_RX:
-            self.State.rsx = (event.value - 32768) / 327.68
+            self.buttons.rsx = (event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_Y:
-            self.State.lsy = -(event.value - 32768) / 327.68
+            self.buttons.lsy = -(event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_X and event.type == 3:
-            self.State.lsx = (event.value - 32768) / 327.68
+            self.buttons.lsx = (event.value - 32768) / 327.68
 
         elif event.code == ecodes.ABS_HAT0Y:
-            self.State.up = event.value == -1
-            self.State.down = event.value == 1
+            self.buttons.up = event.value == -1
+            self.buttons.down = event.value == 1
 
         elif event.code == ecodes.ABS_HAT0X:
-            self.State.left = event.value == -1
-            self.State.right = event.value == 1
+            self.buttons.left = event.value == -1
+            self.buttons.right = event.value == 1
 
         elif event.code == ecodes.KEY_MENU:
-            self.State.menu = event.value > 0
-            if self.State.menu:
-                state.running = False
+            self.buttons.menu = event.value > 0
+            if self.buttons.menu:
+                self.running = False
 
     def down(self):
         if self.input_device:
             self.input_device.close()
             self.input_device = None
-        self.State.running = False
+        self.running = False
         logger.info("down")

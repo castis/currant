@@ -8,11 +8,9 @@ class Output:
         self.file = open(f"./logs/{now}.txt", "w")
 
     def tick(self, state):
-        line = json.dumps({
-            "time": state.timer.current,
-            "gyro": state.vehicle.gyro,
-            "accel": engine.vehicle.accelerometer
-        })
+        line = json.dumps(
+            {"time": state.timer.current, "gyro": state.vehicle.gyro, "accel": engine.vehicle.accelerometer}
+        )
         self.file.write(f"{line}\n")
 
     def down(self):

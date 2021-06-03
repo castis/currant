@@ -111,15 +111,9 @@ class PWM:
         logger.info("stop pwm channel %s" % (self.channel))
 
     def ChangeDutyCycle(self, duty_cycle):
-        logger.info(
-            "channel %s: duty cycle: from %s to %s"
-            % (self.channel, self.duty_cycle, duty_cycle)
-        )
+        logger.info("channel %s: duty cycle: from %s to %s" % (self.channel, self.duty_cycle, duty_cycle))
         self.duty_cycle = duty_cycle
 
     def ChangeFrequency(self, frequency):
-        logger.info(
-            "channel %s: frequency: from %s to %s"
-            % (self.channel, self.frequency, frequency)
-        )
+        logger.info("channel %s: frequency: from %s to %s" % (self.channel, self.frequency, frequency))
         self.frequency = frequency

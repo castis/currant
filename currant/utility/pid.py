@@ -41,9 +41,7 @@ class PID(object):
 
         # derivative
         if time_delta > 0:
-            alpha -= self.Kd * (
-                (_feedback - self.previous_feedback) / float(time_delta)
-            )
+            alpha -= self.Kd * ((_feedback - self.previous_feedback) / float(time_delta))
 
         self.previous_feedback = _feedback
 

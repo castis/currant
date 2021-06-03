@@ -65,25 +65,23 @@ magnetometer = Magnetometer()
 
 
 class Vehicle(object):
+    control_pins = [19, 16, 26, 20]
+    power_pins = [23, 27, 22, 17]
+    motors = []
+    temperature = 0
+    # temperature = mpu9250.readTemperature()
+    accelerometer = mpu9250.readAccel()
+    gyro = mpu9250.readGyro()
+    magnet = magnetometer.read()
+    altitude = altimeter.distance()
+    throttle = 0
 
-    class State:
-        control_pins = [19, 16, 26, 20]
-        power_pins = [17, 27, 22, 23]
-        motors = []
-        temperature = 0
-        # temperature = mpu9250.readTemperature()
-        accelerometer = mpu9250.readAccel()
-        gyro = mpu9250.readGyro()
-        magnet = magnetometer.read()
-        altitude = altimeter.distance()
-        throttle = 0
-
-    def __init__(self, state):
-        state.vehicle = self.State
-        state.vehicle.motors = [
-            Motor(control_pin=control, power_pin=power)
-            for control, power in zip(state.vehicle.control_pins, state.vehicle.power_pins)
+    def __init__(self, args, timer, controller):
+        self.motors = [
+            Motor(control_pin=control, power_pin=power) for control, power in zip(self.control_pins, self.power_pins)
         ]
+        self.timer = timer
+        self.controller = controller
 
         self.pitch = PID(p=1.0, i=0.1, d=0)
         self.roll = PID(p=1.0, i=0.1, d=0)
@@ -91,35 +89,35 @@ class Vehicle(object):
 
         logger.info("up")
 
-    def update(self, state):
-        state.vehicle.accelerometer = mpu9250.readAccel()
-        state.vehicle.gyro = mpu9250.readGyro()
-        state.vehicle.magnet = magnetometer.read()
-        state.vehicle.deviation = magnetometer.deviation()
-        state.vehicle.altitude = altimeter.distance()
+    def update(self):
+        self.accelerometer = mpu9250.readAccel()
+        self.gyro = mpu9250.readGyro()
+        self.magnet = magnetometer.read()
+        self.deviation = magnetometer.deviation()
+        self.altitude = altimeter.distance()
 
-        # state.vehicle.temperature = mpu9250.readTemperature()
+        # self.temperature = mpu9250.readTemperature()
 
-        self.State.throttle = state.controller.lsy
-        self.apply_throttle(self.State.throttle)
+        self.throttle = self.controller.buttons.lsy
+        self.apply_throttle(self.throttle)
 
-        pitch_delta = self.pitch(state.vehicle.accelerometer["x"], state.timer.delta)
-        self.apply_pitch(state.vehicle.motors, pitch_delta)
+        pitch_delta = self.pitch(self.accelerometer["x"], self.timer.delta)
+        self.apply_pitch(self.motors, pitch_delta)
 
-        roll_delta = self.roll(state.vehicle.accelerometer["y"], state.timer.delta)
-        self.apply_roll(state.vehicle.motors, roll_delta)
+        roll_delta = self.roll(self.accelerometer["y"], self.timer.delta)
+        self.apply_roll(self.motors, roll_delta)
 
         # yaw_delta = self.yaw(
-        #     state.vehicle.deviation["y"],
-        #     state.timer.delta
+        #     self.deviation["y"],
+        #     self.timer.delta
         # )
-        # self.apply_yaw(state.vehicle.motors, yaw_delta)
+        # self.apply_yaw(self.motors, yaw_delta)
 
-        for motor in state.vehicle.motors:
+        for motor in self.motors:
             motor.tick()
 
     def apply_throttle(self, throttle):
-        for motor in self.State.motors:
+        for motor in self.motors:
             motor.throttle = throttle
 
     def apply_pitch(self, motors, delta):
@@ -142,7 +140,7 @@ class Vehicle(object):
 
     def down(self):
         self.apply_throttle(0)
-        for motor in self.State.motors:
+        for motor in self.motors:
             motor.tick()
         GPIO.cleanup()
         logger.info("down")

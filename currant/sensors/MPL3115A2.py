@@ -81,9 +81,7 @@ bus.write_byte_data(
 bus.write_byte_data(
     MPL3115A2_ADDRESS,
     MPL3115A2_PT_DATA_CFG,
-    MPL3115A2_PT_DATA_CFG_TDEFE
-    | MPL3115A2_PT_DATA_CFG_PDEFE
-    | MPL3115A2_PT_DATA_CFG_DREM,
+    MPL3115A2_PT_DATA_CFG_TDEFE | MPL3115A2_PT_DATA_CFG_PDEFE | MPL3115A2_PT_DATA_CFG_DREM,
 )
 
 
@@ -102,9 +100,7 @@ def altitude():
 
     poll()
 
-    msb, csb, lsb = bus.read_i2c_block_data(
-        MPL3115A2_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, 3
-    )
+    msb, csb, lsb = bus.read_i2c_block_data(MPL3115A2_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, 3)
     print(msb, csb, lsb)
 
     alt = ((msb << 24) | (csb << 16) | (lsb << 8)) / 65536.0
@@ -125,9 +121,7 @@ def pressure():
 
     poll()
 
-    msb, csb, lsb = bus.read_i2c_block_data(
-        MPL3115A2_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, 3
-    )
+    msb, csb, lsb = bus.read_i2c_block_data(MPL3115A2_ADDRESS, MPL3115A2_REGISTER_PRESSURE_MSB, 3)
     print(msb, csb, lsb)
 
     return ((msb << 16) | (csb << 8) | lsb) / 64.0
@@ -135,6 +129,4 @@ def pressure():
 
 def calibrate():
     pa = int(pressure() / 2)
-    bus.write_i2c_block_data(
-        MPL3115A2_ADDRESS, MPL3115A2_BAR_IN_MSB, [pa >> 8 & 0xFF, pa & 0xFF]
-    )
+    bus.write_i2c_block_data(MPL3115A2_ADDRESS, MPL3115A2_BAR_IN_MSB, [pa >> 8 & 0xFF, pa & 0xFF])

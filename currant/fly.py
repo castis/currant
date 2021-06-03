@@ -6,10 +6,14 @@ import os
 import signal
 import sys
 import time
+import pdb
 from functools import partial
 
 import psutil
-from engine import Timer, Controller, Display, Vehicle
+from engine import Controller, Display, Timer, Vehicle
+
+logger = logging.getLogger()
+
 
 parser = argparse.ArgumentParser(description="Aviation!")
 
@@ -19,6 +23,12 @@ parser.add_argument(
     action="store_true",
     dest="debug",
     help="Disables curses front end and custom logger",
+)
+parser.add_argument(
+    "--disable-display",
+    action="store_false",
+    dest="display_enabled",
+    help="Disable the curses frontend",
 )
 parser.add_argument(
     "--setup-bt",
@@ -36,15 +46,7 @@ logging.basicConfig(
 )
 
 
-class State(object):
-    running = True
-    log = [""] * 6
-
-    def __init__(self, args):
-        self.args = args
-
-
-state = State(args)
+log = [""] * 6
 
 
 class Handler(logging.Handler):
@@ -60,19 +62,18 @@ class Handler(logging.Handler):
         self.history.pop()
 
 
-logger = logging.getLogger()
-
-if not args.debug:
+if args.display_enabled:
     for h in list(logger.handlers):
         logger.removeHandler(h)
-    logger.addHandler(Handler(state.log))
+    logger.addHandler(Handler(log))
 
-timer = Timer(state)
-controller = Controller(state)
-vehicle = Vehicle(state)
-display = Display(state)
 
-# todo: pass in state instead of display and refuse to restart if altitude > 0
+timer = Timer(args)
+controller = Controller(args)
+vehicle = Vehicle(args, timer, controller)
+display = Display(args, timer, controller, vehicle)
+
+
 def restart(display, sig, frame):
     if display:
         display.down()
@@ -91,13 +92,16 @@ def restart(display, sig, frame):
 signal.signal(signal.SIGUSR1, partial(restart, display))
 
 
+running = True
 stored_exception = None
 try:
-    while state.running:
-        controller.update(state)
-        vehicle.update(state)
-        timer.update(state)
-        display.update(state)
+    while running:
+        if args.debug:
+            pdb.set_trace()
+        controller.update()
+        vehicle.update()
+        timer.update()
+        display.update()
 
 except Exception as e:
     # we dont want to throw an exception

@@ -121,9 +121,7 @@ class Bluetoothctl:
             logger.error(e)
             return False
         else:
-            res = self.process.expect(
-                ["Failed to pair", "Pairing successful", pexpect.EOF]
-            )
+            res = self.process.expect(["Failed to pair", "Pairing successful", pexpect.EOF])
             return res == 1
 
     def trust(self, mac_address):
@@ -133,9 +131,7 @@ class Bluetoothctl:
             logger.error(e)
             return False
         else:
-            res = self.process.expect(
-                ["Failed to trust", "Pairing successful", pexpect.EOF]
-            )
+            res = self.process.expect(["Failed to trust", "Pairing successful", pexpect.EOF])
             return res == 1
 
     def remove(self, mac_address):
@@ -146,9 +142,7 @@ class Bluetoothctl:
             logger.error(e)
             return False
         else:
-            res = self.process.expect(
-                ["not available", "Device has been removed", pexpect.EOF]
-            )
+            res = self.process.expect(["not available", "Device has been removed", pexpect.EOF])
             return res == 1
 
     def connect(self, mac_address):
@@ -159,9 +153,7 @@ class Bluetoothctl:
             logger.error(e)
             return False
         else:
-            res = self.process.expect(
-                ["Failed to connect", "Connection successful", pexpect.EOF]
-            )
+            res = self.process.expect(["Failed to connect", "Connection successful", pexpect.EOF])
             return res == 1
 
     def disconnect(self, mac_address):
@@ -172,7 +164,5 @@ class Bluetoothctl:
             logger.error(e)
             return False
         else:
-            res = self.process.expect(
-                ["Failed to disconnect", "Successful disconnected", pexpect.EOF]
-            )
+            res = self.process.expect(["Failed to disconnect", "Successful disconnected", pexpect.EOF])
             return res == 1
