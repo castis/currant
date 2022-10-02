@@ -1,5 +1,6 @@
 import logging
 from time import sleep
+from typing import Union
 
 from evdev import InputDevice, categorize, ecodes
 from utility import Bluetoothctl
@@ -8,36 +9,35 @@ logger = logging.getLogger("controller")
 
 
 class Controller(object):
-    running = False
-
-    device_file = "/dev/input/event0"
-    input_device = None
-    raw = {}
+    running: bool = False
+    device_file: str = "/dev/input/event0"
+    input_device: InputDevice = None
+    raw: dict = {}
 
     class buttons:
-        a = False
-        b = False
-        x = False
-        y = False
-        l1 = False
-        r1 = False
-        l2 = False
-        r2 = False
-        l3 = False
-        r3 = False
-        start = False
-        select = False
-        rsy = 0
-        rsx = 0
-        lsy = 0
-        lsx = 0
-        up = False
-        down = False
-        left = False
-        right = False
-        menu = False
+        a: bool = False
+        b: bool = False
+        x: bool = False
+        y: bool = False
+        l1: bool = False
+        r1: bool = False
+        l2: bool = False
+        r2: bool = False
+        l3: bool = False
+        r3: bool = False
+        start: bool = False
+        select: bool = False
+        rsy: float = 0
+        rsx: float = 0
+        lsy: float = 0
+        lsx: float = 0
+        up: bool = False
+        down: bool = False
+        left: bool = False
+        right: bool = False
+        menu: bool = False
 
-        def get(*args, **kwargs):
+        def get(*args, **kwargs) -> Union[str, float]:
             return getattr(*args, **kwargs)
 
     def __init__(self, args):
@@ -50,8 +50,8 @@ class Controller(object):
             logger.error("could not open device file")
 
     def setup_bluetooth(self):
-        btctl = Bluetoothctl()
-        seconds = 5
+        btctl: Bluetoothctl = Bluetoothctl()
+        seconds: int = 5
 
         logger.info(f"scanning for {seconds} seconds")
         btctl.start_scan()
@@ -89,7 +89,7 @@ class Controller(object):
             connected = btctl.connect(device["mac_address"])
             logger.info("%s to %s" % ("connected" if connected else "could not connect", device["name"]))
 
-    def up(self):
+    def up(self) -> bool:
         try:
             self.input_device = InputDevice(self.device_file)
             logger.info("up")
@@ -97,7 +97,7 @@ class Controller(object):
             return False
         return True
 
-    def get(self, button, default=False):
+    def get(self, button, default: bool=False):
         return getattr(self.buttons, button, default)
 
     def update(self):

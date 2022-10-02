@@ -39,6 +39,9 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+if args.debug:
+    args.display_enabled = False
+
 logging.basicConfig(
     level=logging.DEBUG if args.debug else logging.INFO,
     format="%(asctime)s - %(name)s - %(message)s",
@@ -63,8 +66,10 @@ class Handler(logging.Handler):
 
 
 if args.display_enabled:
+    # remove all existing handlers
     for h in list(logger.handlers):
         logger.removeHandler(h)
+    # and add our own that we'll can attach the UI to
     logger.addHandler(Handler(log))
 
 
@@ -74,28 +79,27 @@ vehicle = Vehicle(args, timer, controller)
 display = Display(args, timer, controller, vehicle)
 
 
-def restart(display, sig, frame):
-    if display:
-        display.down()
-    logger.info("restarting...")
+# def restart(display, sig, frame):
+#     if display:
+#         display.down()
+#     logger.info("restarting...")
 
-    try:
-        p = psutil.Process(os.getpid())
-        for handler in p.open_files() + p.connections():
-            os.close(handler.fd)
-    except Exception as e:
-        logging.error(e)
+#     try:
+#         p = psutil.Process(os.getpid())
+#         for handler in p.open_files() + p.connections():
+#             os.close(handler.fd)
+#     except Exception as e:
+#         logging.error(e)
 
-    os.execl(sys.executable, sys.executable, *sys.argv)
-
-
-signal.signal(signal.SIGUSR1, partial(restart, display))
+#     os.execl(sys.executable, sys.executable, *sys.argv)
 
 
-running = True
+# signal.signal(signal.SIGUSR1, partial(restart, display))
+
+
 stored_exception = None
 try:
-    while running:
+    while True:
         if args.debug:
             pdb.set_trace()
         controller.update()

@@ -191,7 +191,9 @@ class MPU9250:
         time.sleep(0.01)
 
         # set scale&continous mode
-        bus.write_byte_data(AK8963_SLAVE_ADDRESS, AK8963_CNTL1, (mfs << 4 | mode))
+        bus.write_byte_data(
+            AK8963_SLAVE_ADDRESS, AK8963_CNTL1, (mfs << 4 | mode)
+        )
         time.sleep(0.01)
 
     # brief Check data ready
@@ -233,7 +235,9 @@ class MPU9250:
         # check data ready
         drdy = bus.read_byte_data(AK8963_SLAVE_ADDRESS, AK8963_ST1)
         if drdy & 0x01:
-            data = bus.read_i2c_block_data(AK8963_SLAVE_ADDRESS, AK8963_MAGNET_OUT, 7)
+            data = bus.read_i2c_block_data(
+                AK8963_SLAVE_ADDRESS, AK8963_MAGNET_OUT, 7
+            )
 
             # check overflow
             if (data[6] & 0x08) != 0x08:

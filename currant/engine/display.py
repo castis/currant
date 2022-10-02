@@ -1,5 +1,4 @@
 import curses
-import io
 import logging
 import os
 import sys
@@ -20,10 +19,14 @@ class Cluster:
         self.display_color = curses.color_pair(2)
 
     def update(self, *args, error=False, **kwargs):
-        self.window.addstr(0, 0, f"{self.name}:", self.err_color if error else self.name_color)
+        self.window.addstr(
+            0, 0, f"{self.name}:", self.err_color if error else self.name_color
+        )
         logger.info(self.display.format(*args, **kwargs))
         logger.info(self.display_color)
-        self.window.addstr(1, 0, self.display.format(*args, **kwargs), self.display_color)
+        self.window.addstr(
+            1, 0, self.display.format(*args, **kwargs), self.display_color
+        )
         self.window.noutrefresh()
 
 
@@ -153,7 +156,7 @@ class Display(object):
             fps=self.timer.fps,
             frame=self.timer.frames,
             highest_delta=self.timer.highest_delta,
-            mem=process.memory_info().rss / float(2 ** 20),
+            mem=process.memory_info().rss / float(2**20),
         )
 
         self.controllerCluster.update(

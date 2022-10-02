@@ -9,7 +9,11 @@ class Output:
 
     def tick(self, state):
         line = json.dumps(
-            {"time": state.timer.current, "gyro": state.vehicle.gyro, "accel": engine.vehicle.accelerometer}
+            {
+                "time": state.timer.current,
+                "gyro": state.vehicle.gyro,
+                "accel": engine.vehicle.accelerometer,
+            }
         )
         self.file.write(f"{line}\n")
 

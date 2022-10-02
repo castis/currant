@@ -28,8 +28,7 @@ class Magnetometer:
         self.initial_read = self.read()
 
     def read(self):
-        reading = mpu9250.readMagnet()
-        if reading:
+        if reading := mpu9250.readMagnet():
             self.last_good_read = reading
         return self.last_good_read
 
@@ -49,15 +48,11 @@ class Altimeter(object):
         self.sensor = sensors.HCSR04()
 
     def distance(self):
-        self.history.insert(0, self.read())
+        # the front of the sensor is 2.9cm from the bottom of the feet
+        self.history.insert(0, self.sensor.read() - 2.9)
         if len(self.history) > 30:
             self.history.pop()
         return sum(self.history) / len(self.history)
-
-    def read(self):
-        # front of sensor is mounted this
-        # far from bottom of vehicle
-        return self.sensor.read() - 2.90
 
 
 altimeter = Altimeter()
@@ -78,7 +73,8 @@ class Vehicle(object):
 
     def __init__(self, args, timer, controller):
         self.motors = [
-            Motor(control_pin=control, power_pin=power) for control, power in zip(self.control_pins, self.power_pins)
+            Motor(control_pin=control, power_pin=power)
+            for control, power in zip(self.control_pins, self.power_pins)
         ]
         self.timer = timer
         self.controller = controller
@@ -146,6 +142,15 @@ class Vehicle(object):
         logger.info("down")
 
 
+# rescale(20, (0, 25), (12, 2)) == 4.0
+# this says if a value is 20 on a scale from 0 to 25,
+# what would that value be on a scale from 12 to 2?
+# answer: 4
+def rescale(val, in_: tuple, out_: tuple):
+    v = (((val - in_[0]) * (out_[1] - out_[0])) / (in_[1] - in_[0])) + out_[0]
+    return round(v, 2)
+
+
 class Motor(object):
     """
     values below 20 produce what appears to be an alarming beep
@@ -153,17 +158,21 @@ class Motor(object):
     so keep a range and adjust the throttle within it
     """
 
-    min_duty_cycle = 30
-    max_duty_cycle = 80
-    duty_cycle_range = None
+    # min_duty_cycle = 30
+    # max_duty_cycle = 80
+
+    duty_cycle_range = (30, 80)
+
+    # duty_cycle_range = None
     throttle = 0
+    throttle_range = (0, 100)
     dc = 0
 
     control_pin = None
     power_pin = None
 
     def __init__(self, control_pin=None, power_pin=None):
-        self.duty_cycle_range = self.max_duty_cycle - self.min_duty_cycle
+        # self.duty_cycle_range = self.max_duty_cycle - self.min_duty_cycle
 
         GPIO.setup(control_pin, GPIO.OUT)
         # 500hz appears to generate the least amount of popping from the motor
@@ -175,10 +184,9 @@ class Motor(object):
 
     def tick(self):
         self.control_pin.start(self.min_duty_cycle)
-        duty_cycle = self.min_duty_cycle + (self.throttle * self.duty_cycle_range / 100)
-        duty_cycle = max(min(self.max_duty_cycle, duty_cycle), self.min_duty_cycle)
-
-        self.dc = duty_cycle
+        self.dc = rescale(
+            self.throttle, self.throttle_range, self.duty_cycle_range
+        )
 
     def on(self):
         GPIO.output(self.power_pin, GPIO.HIGH)
