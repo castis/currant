@@ -4,7 +4,6 @@ Quadcopter flight control software
 
 ![quadcopter](./assets/mar2019.jpg)
 
-
 ## Hardware
 
 - [Raspberry Pi 3 B+](https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/), running [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/), housed in a [Pibow 3 Coupé](https://shop.pimoroni.com/products/pibow-coupe-for-raspberry-pi-3-b-plus)
@@ -21,24 +20,23 @@ Quadcopter flight control software
 
 - [MPL3115A2 Altitude/Pressure Sensor](https://www.sparkfun.com/products/11084)
 
-
 ## Initial setup
 
 ### The vehicle
 
 From a fresh install of [Raspian Stretch Lite](https://www.raspberrypi.org/downloads/raspbian/):
 
-Connect it to the local network via ethernet (the wireless card is used to manage it's own network)
+Connect it to the local network with a cable (the wireless card will be used to manage it's own network)
 
 - note the IP
 - set a root password
-- Run `raspi-config`
-	- Under `Localisation Options`, set the proper keyboard layout.
-	- Under `Advanced`, expand the filesystem if it didn't automatically do this at first boot.
-	- Under `Interfacing Options`, enable `SSH` and `I2C`.
-- change `PermitRootLogin` for the moment: `sed -i -E "s/^#?(PermitRootLogin)/\1 yes/" /etc/ssh/sshd_config` and `systemctl restart ssh`
-
-Ansible will later change that `yes` to `prohibit-password`.
+- run the following
+  - `raspi-config`
+    - Under `Localisation Options`, set the proper keyboard layout.
+    - Under `Advanced`, expand the filesystem if it didn't automatically do this at first boot.
+    - Under `Interfacing Options`, enable `SSH` and `I2C`.
+  - `sed -i -E "s/^#?(PermitRootLogin)/\1 yes/" /etc/ssh/sshd_config` to change 'PermitRootLogin' for a moment. Ansible will later change that `yes` to `prohibit-password`.
+  - `systemctl restart ssh`
 
 ### The development machine
 
@@ -73,8 +71,7 @@ By default, the network is `currant`, as is the username. Password is `currantpw
 
 Once connected via wifi, change the line in your `/etc/hosts/` to:
 
-	172.24.1.1 currant
-
+    172.24.1.1 currant
 
 ## Development
 
@@ -83,8 +80,6 @@ I open three terminal instances with [`itermocil --here`](https://github.com/Tom
 - One for git/local work (pictured left)
 - One for running `ssh currant`, and once inside the vehicle, running `preflight` and then `./fly.py`. (top right)
 - One for running `pipenv shell ./tower.py`, which will watch and sync `./currant/*` to `/opt/currant` on the vehicle. (bottom right)
-
-![terminal](./assets/terminal.png)
 
 `preflight` is `./ansible/files/preflight`
 
