@@ -172,8 +172,6 @@ class Motor(object):
     power_pin = None
 
     def __init__(self, control_pin=None, power_pin=None):
-        # self.duty_cycle_range = self.max_duty_cycle - self.min_duty_cycle
-
         GPIO.setup(control_pin, GPIO.OUT)
         # 500hz appears to generate the least amount of popping from the motor
         # as long as a prop is installed

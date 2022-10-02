@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# kill $(ps aux | grep [^]]tower.py | awk '{print $2}')
 # kill $(ps aux | awk '/[^]]tower.py/ {print $2}')
 
 import logging
